@@ -5,6 +5,7 @@ import {
   installExtension,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
+import "@/core/server";
 import { UpdateSourceType, updateElectronApp } from "update-electron-app";
 import { ipcContext } from "@/ipc/context";
 import { IPC_CHANNELS, inDevelopment } from "./constants";
@@ -14,8 +15,11 @@ function createWindow() {
   const basePath = getBasePath();
   const preload = path.join(basePath, "preload.js");
   const mainWindow = new BrowserWindow({
-    height: 600,
-    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
+    width: 1240,
+    height: 800,
+    minWidth: 900,
+    minHeight: 600,
+    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     trafficLightPosition:
       process.platform === "darwin" ? { x: 5, y: 5 } : undefined,
     webPreferences: {
@@ -23,10 +27,8 @@ function createWindow() {
       devTools: inDevelopment,
       nodeIntegration: true,
       nodeIntegrationInSubFrames: false,
-
       preload,
     },
-    width: 800,
   });
   ipcContext.setMainWindow(mainWindow);
 

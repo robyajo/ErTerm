@@ -1,7 +1,7 @@
 @echo off
-title LuluaX-Term Installer Builder (NSIS Setup)
+title ErTerm Package Builder (Electron Forge)
 echo ========================================================
-echo     LuluaX-Term — Windows Setup Installer Builder       
+echo         ErTerm — Desktop App Package Builder            
 echo ========================================================
 echo.
 
@@ -15,16 +15,14 @@ if %errorlevel% neq 0 (
 )
 
 :: Close instances
-taskkill /F /IM "LuluaX-Term.exe" >nul 2>nul
-taskkill /F /IM "LuluaX-Term 1.0.0.exe" >nul 2>nul
-taskkill /F /IM "LuluaX-Term Setup*.exe" >nul 2>nul
+taskkill /F /IM "ErTerm.exe" >nul 2>nul
+taskkill /F /IM "electron.exe" >nul 2>nul
 
-echo Packaging full Windows Setup Installer with Installation Wizard and Shortcuts...
-call npx electron-builder --win nsis --publish never
-
+echo Packaging ErTerm with Vite and Electron Forge...
+call npm run package
 echo.
 echo ========================================================
 echo  BUILD SUCCESS!
-echo  Installer created at: dist\LuluaX-Term Setup 1.0.0.exe
+echo  Package created in .vite/build and out/
 echo ========================================================
 pause

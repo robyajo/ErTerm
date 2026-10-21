@@ -102,3 +102,6 @@ out/
 
 # Tanstack
 .tanstack/
+# Account Registries & Activity Sync
+data/registry-*.json
+.ACTIVITY_PROJECT_KEYS

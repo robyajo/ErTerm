@@ -1,7 +1,7 @@
 @echo off
-title LuluaX-Term Builder (Windows EXE)
+title ErTerm Package Builder (Windows)
 echo ========================================================
-echo         LuluaX-Term — Windows Executable Builder        
+echo             ErTerm — Windows App Builder                
 echo ========================================================
 echo.
 
@@ -20,17 +20,15 @@ if not exist "node_modules\electron-builder" (
     call npm install -D electron electron-builder
 )
 
-:: Ensure previous instances are closed to avoid file lock
-taskkill /F /IM "LuluaX-Term.exe" >nul 2>nul
-taskkill /F /IM "LuluaX-Term 1.0.0.exe" >nul 2>nul
-taskkill /F /IM "LuluaX-Term Setup*.exe" >nul 2>nul
+taskkill /F /IM "ErTerm.exe" >nul 2>nul
+taskkill /F /IM "electron.exe" >nul 2>nul
 
-echo [2/2] Packaging into Windows Setup Installer (.exe)...
-call npx electron-builder --win nsis --publish never
+echo [2/2] Packaging with Vite and Electron Forge...
+call npm run package
 
 echo.
 echo ========================================================
 echo  BUILD SUCCESS!
-echo  Windows Installer: dist\LuluaX-Term Setup 1.0.0.exe
+echo  Package created in .vite/build
 echo ========================================================
 pause

@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-22",
+  "type": "feature",
+  "project": {
+    "name": "ErTerm"
+  },
+  "title": {
+    "id": "Rilis v1.0.3 — Peluncuran ErTerm dengan React, Vite, shadcn/ui, dan Mesin Terminal Lengkap",
+    "en": "Release v1.0.3 — ErTerm Launch with React, Vite, shadcn/ui, and Full Terminal Core"
+  },
+  "body": {
+    "id": "ErTerm kini resmi menjadi klien terminal utama dengan antarmuka modern berbasis React 19, Vite, dan shadcn/ui, menanamkan seluruh mesin inti terminal canggih: socket forwarder TCP/SOCKS5, server loncat (bastion), editor SFTP interaktif, pengelompokan folder seret-dan-lepas, serta sinkronisasi registry akun terpadu.",
+    "en": "ErTerm is now officially the primary terminal client featuring a modern React 19, Vite, and shadcn/ui interface, embedding the full advanced terminal engine: TCP/SOCKS5 socket forwarding, bastion jump hosts, interactive SFTP editor, drag-and-drop folder grouping, and unified account registry synchronization."
+  },
+  "items": [
+    {
+      "type": "feature",
+      "id": "Antarmuka Modern React 19 & shadcn/ui: Desain visual presisi dengan palet tema gelap, tipografi mono, dan navigasi modular.",
+      "en": "Modern React 19 & shadcn/ui UI: Pixel-precise visual design with dark theme palette, mono typography, and modular navigation."
+    },
+    {
+      "type": "feature",
+      "id": "Mesin Inti Terminal Penuh: WebSocket PTY streaming (ConPTY / macOS zsh), klien SSH2, broadcast input multi-tab, dan perekaman sesi log.",
+      "en": "Full Terminal Core Engine: WebSocket PTY streaming (ConPTY / macOS zsh), SSH2 client, multi-tab broadcast input, and session logging."
+    },
+    {
+      "type": "feature",
+      "id": "Pengelompokan Folder & Drag-and-Drop: Menata server dalam folder kustom dengan ikon, warna, dan interaksi seret-lepas.",
+      "en": "Folder Grouping & Drag-and-Drop: Organize servers into custom folders with icons, colors, and drag-and-drop interactions."
+    },
+    {
+      "type": "feature",
+      "id": "Penerusan Port & Proksi SOCKS5 Aktif: Listener socket TCP nyata dan SOCKS5 proxy dinamis dengan pemantauan status langsung.",
+      "en": "Active Port Forwarding & SOCKS5 Proxy: Real TCP socket listeners and dynamic SOCKS5 proxy with live status monitoring."
+    },
+    {
+      "type": "feature",
+      "id": "Server Perantara Bastion (ProxyJump): Menghubungkan sesi terminal dan SFTP ke server privat internal secara aman.",
+      "en": "Bastion Jump Host (ProxyJump): Connect terminal and SFTP sessions to internal private servers securely."
+    },
+    {
+      "type": "feature",
+      "id": "Manajer SFTP Dua Panel & Editor Berkas: Eksplorasi berkas lokal ⇄ remote dengan editor kode terintegrasi dan simpan instan Ctrl+S.",
+      "en": "Dual-Pane SFTP Manager & File Editor: Explore local ⇄ remote files with an integrated code editor and Ctrl+S instant save."
+    },
+    {
+      "type": "feature",
+      "id": "Penyimpanan Registry Akun & Sinkronisasi Cloud: Snapshot workspace tersimpan per akun di disk lokal dan tersinkronisasi ke Neon PostgreSQL.",
+      "en": "Account Registry Storage & Cloud Sync: Account-scoped workspace snapshots saved locally and synced to Neon PostgreSQL."
+    }
+  ]
+}
