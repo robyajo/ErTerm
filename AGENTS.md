@@ -7,11 +7,12 @@
 
 ## 1. Kepatuhan Skill Wajib (.agents/skills/)
 
-Aplikasi ini memiliki 2 skill inti yang **wajib dipatuhi**:
+Aplikasi ini memiliki 4 skill inti yang **wajib dipatuhi**:
 
-1. **`erterm`** ([`.agents/skills/erterm/SKILL.md`](file:///.agents/skills/erterm/SKILL.md)): Panduan master arsitektur Terminal & SSH Client, Mesin PTY (Windows ConPTY & macOS `/bin/zsh`), Dual-Pane SFTP Manager (khas Termius), Port Forwarding/SSH Tunnels, SSH Key Vault (Ed25519 & RSA), dan integrasi Cloud Sync.
-2. **`activity-sync`** ([`.agents/skills/activity-sync/SKILL.md`](file:///.agents/skills/activity-sync/SKILL.md)): Standar pencatatan rilis dwibahasa publik dan sinkronisasi kegiatan ke portfolio API.
-
+1. **`erterm`** ([`.agents/skills/erterm/SKILL.md`](file:///.agents/skills/erterm/SKILL.md)): Panduan master arsitektur Terminal & SSH Client, Mesin PTY (Windows ConPTY & macOS `/bin/zsh`), Dual-Pane SFTP Manager, Port Forwarding/SSH Tunnels, SSH Key Vault, dan integrasi Cloud Sync.
+2. **`erterm-registry-sync`** ([`.agents/skills/erterm-registry-sync/SKILL.md`](file:///.agents/skills/erterm-registry-sync/SKILL.md)): Arsitektur penyimpanan registry per akun (`registry-<accountId>.json`) dan sinkronisasi multi-device.
+3. **`erterm-suite`** ([`.agents/skills/erterm-suite/SKILL.md`](file:///.agents/skills/erterm-suite/SKILL.md)): Arsitektur koordinasi ekosistem aplikasi.
+4. **`activity-sync`** ([`.agents/skills/activity-sync/SKILL.md`](file:///.agents/skills/activity-sync/SKILL.md)): Standar pencatatan rilis dwibahasa publik dan sinkronisasi kegiatan ke portfolio API.
 ---
 
 ## 2. Aturan Teknis & Invarian Kritis (Wajib Dipatuhi)

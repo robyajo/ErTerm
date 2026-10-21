@@ -1,6 +1,6 @@
 ---
-name: luluax-suite
-description: "Master architecture and development knowledge base for the entire LuluaX Suite: ErTerm (SSH & Terminal client), LuluaX-Request (API client & HTTP Interceptor), and LuluaX Backend (Hono + Drizzle ORM + Neon PostgreSQL on Vercel at https://www.luluax-service.duckdns.org). Gunakan skill ini setiap kali agen AI bekerja pada level root workspace atau melakukan koordinasi antar-aplikasi."
+name: erterm-suite
+description: "Master architecture and development knowledge base for the ErTerm application ecosystem: ErTerm (SSH & Terminal client), LuluaX-Request (API client), and Cloud Backend (Hono + Drizzle ORM + Neon PostgreSQL at https://www.luluax-service.duckdns.org)."
 ---
 
 # LuluaX Suite — Master Architecture & Agent Guide
