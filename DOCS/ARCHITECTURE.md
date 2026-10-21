@@ -67,5 +67,5 @@ Saat aplikasi dikompilasi ke executable `.exe` Windows atau `.app` macOS, seluru
 
 ## 4. Keamanan Kredensial & Autentikasi
 
-- **Auth Guard Screen**: Saat aplikasi dibuka, `#auth-overlay` memverifikasi token sesi pengguna ke domain backend production (`https://www.luluax-service.duckdns.org/api/auth/me`). Jika tidak ada internet atau token tidak valid, interaksi ke terminal dikunci sampai pengguna berhasil login/register.
+- **Auth Guard Screen**: Saat aplikasi dibuka, `#auth-overlay` memverifikasi token sesi pengguna ke domain backend production (`https://www.er-service.duckdns.org/api/auth/me`). Jika tidak ada internet atau token tidak valid, interaksi ke terminal dikunci sampai pengguna berhasil login/register.
 - **Kredensial SSH**: Password dan Private Key disimpan secara aman di direktori lokal pengguna atau disinkronkan ke tabel `term_hosts` di cluster Neon PostgreSQL dengan autentikasi Bearer token.

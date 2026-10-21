@@ -1286,7 +1286,7 @@ export function TerminalApp() {
                     <label className="text-xs text-slate-400 block mb-1">Cloud Backend API URL</label>
                     <input
                       type="text"
-                      value={settings.cloudApiUrl || "https://www.luluax-service.duckdns.org"}
+                      value={settings.cloudApiUrl || "https://www.er-service.duckdns.org"}
                       onChange={(e) => setSettings({ ...settings, cloudApiUrl: e.target.value })}
                       className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-xs text-white"
                     />
@@ -1321,7 +1321,7 @@ export function TerminalApp() {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            cloudApiUrl: settings.cloudApiUrl || "https://www.luluax-service.duckdns.org",
+                            cloudApiUrl: settings.cloudApiUrl || "https://www.er-service.duckdns.org",
                             syncKey: settings.cloudSyncKey || "robyfull.dev@gmail.com"
                           })
                         }).then(r => r.json());

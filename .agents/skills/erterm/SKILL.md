@@ -1,6 +1,6 @@
 ---
 name: erterm
-description: "Arsitektur dan panduan pengembangan aplikasi ErTerm: Terminal & SSH Client multi-platform (Windows x64/ARM64 dan macOS Apple Silicon M-Series). Meliputi xterm.js v6.0, Windows ConPTY, macOS PTY (/bin/zsh), Pure JS SSH2, Dual-Pane SFTP Manager (khas Termius), Port Forwarding/SSH Tunnels, Cryptographic SSH Key Vault (Ed25519 & RSA), dan Cloud Sync ke Hono + Neon PostgreSQL (https://www.luluax-service.duckdns.org). Gunakan skill ini setiap kali mengembangkan, memperbaiki bug, menambah fitur, atau memaketkan aplikasi ErTerm."
+description: "Arsitektur dan panduan pengembangan aplikasi ErTerm: Terminal & SSH Client multi-platform (Windows x64/ARM64 dan macOS Apple Silicon M-Series). Meliputi xterm.js v6.0, Windows ConPTY, macOS PTY (/bin/zsh), Pure JS SSH2, Dual-Pane SFTP Manager (khas Termius), Port Forwarding/SSH Tunnels, Cryptographic SSH Key Vault (Ed25519 & RSA), dan Cloud Sync ke Hono + Neon PostgreSQL (https://www.er-service.duckdns.org). Gunakan skill ini setiap kali mengembangkan, memperbaiki bug, menambah fitur, atau memaketkan aplikasi ErTerm."
 ---
 
 # ErTerm — Panduan Arsitektur & Pengembangan AI Agent
@@ -22,7 +22,7 @@ Skill ini memuat seluruh panduan arsitektur, struktur kode, alur kerja, konvensi
   - Local PTY Engine: `node-pty` menggunakan Windows ConPTY di Windows dan native `/bin/zsh` (atau `/bin/bash`) di macOS.
   - Penyimpanan Data: `AppData/Roaming/ErTerm` di Windows atau `~/Library/Application Support/ErTerm` di macOS (menghindari error `ENOTDIR` saat dibundel ASAR).
 - **Cloud Backend**:
-  - Live Domain: `https://www.luluax-service.duckdns.org` (Hono Serverless + Drizzle ORM + Neon PostgreSQL).
+  - Live Domain: `https://www.er-service.duckdns.org` (Hono Serverless + Drizzle ORM + Neon PostgreSQL).
 
 ---
 
@@ -52,7 +52,7 @@ Skill ini memuat seluruh panduan arsitektur, struktur kode, alur kerja, konvensi
 - Tombol 1-klik *Salin Public Key* untuk mempermudah pemasangan di `~/.ssh/authorized_keys` server.
 
 ### D. Autentikasi Pengguna & Guard Screen
-- Sebelum aplikasi dapat digunakan, layar terkunci oleh `#auth-overlay` yang mewajibkan login/register ke backend cloud (`https://www.luluax-service.duckdns.org`).
+- Sebelum aplikasi dapat digunakan, layar terkunci oleh `#auth-overlay` yang mewajibkan login/register ke backend cloud (`https://www.er-service.duckdns.org`).
 - Akun bawaan (Seeded di Neon Postgres):
   - **Developer**: `robyfull.dev@gmail.com` | `Password@123`
   - **Admin**: `admin@luluax.com` | `Password@123`

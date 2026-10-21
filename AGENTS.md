@@ -57,7 +57,7 @@ Setiap modifikasi kode pada `ErTerm` harus mematuhi invarian berikut:
 - Seluruh file shell script (`run-macos.sh`, `dev-mac.sh`, `build-mac.sh`) **WAJIB** menggunakan line-ending **`LF`** (bukan `CRLF`).
 
 ### G. Integrasi Cloud Sync & Keamanan Kunci
-- Sinkronisasi cloud terhubung ke `https://www.luluax-service.duckdns.org` (Hono + Drizzle ORM + Neon PostgreSQL).
+- Sinkronisasi cloud terhubung ke `https://www.er-service.duckdns.org` (Hono + Drizzle ORM + Neon PostgreSQL).
 - Gunakan endpoint modular backend: `/api/term` untuk host, snippet, pengaturan, kunci, dan tunnel; serta `/api/sync` untuk full snapshot.
 - Kredensial dan token sesi disimpan di `localStorage` frontend (`luluax_auth_token`).
 - **DILARANG KERAS** melakukan commit file kredensial lokal seperti `.env`, `.env.local`, atau `.ACTIVITY_PROJECT_KEYS` ke repositori Git.

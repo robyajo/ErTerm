@@ -18,7 +18,7 @@ Dokumen ini memuat kontrak teknis wajib bagi seluruh agen AI yang bekerja pada a
    - Berkas ini memuat seluruh status workspace pengguna: folder, host, port forwarding/tunnel, key vault, cuplikan perintah (snippets), dan pengaturan personal.
 
 2. **Multi-Device Parity (Cloud Synchronization)**:
-   - Setiap kali pengguna melakukan perubahan (menambah host, membuat folder, drag-and-drop host ke folder, menyimpan kunci, toggle tunnel), perubahan tersebut disimpan secara lokal dan disinkronkan secara asinkron (debounced) ke backend database PostgreSQL Neon di `https://www.luluax-service.duckdns.org`.
+   - Setiap kali pengguna melakukan perubahan (menambah host, membuat folder, drag-and-drop host ke folder, menyimpan kunci, toggle tunnel), perubahan tersebut disimpan secara lokal dan disinkronkan secara asinkron (debounced) ke backend database PostgreSQL Neon di `https://www.er-service.duckdns.org`.
    - Saat pengguna login di perangkat baru (misal laptop lain atau komputer kantor), aplikasi otomatis memanggil `GET /api/terminal/registry` atau `/api/cloud/pull` untuk mengunduh snapshot akun tersebut sehingga tata letak folder dan host tampil 100% identik.
 
 ---

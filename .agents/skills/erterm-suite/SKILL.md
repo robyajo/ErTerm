@@ -1,6 +1,6 @@
 ---
 name: erterm-suite
-description: "Master architecture and development knowledge base for the ErTerm application ecosystem: ErTerm (SSH & Terminal client), LuluaX-Request (API client), and Cloud Backend (Hono + Drizzle ORM + Neon PostgreSQL at https://www.luluax-service.duckdns.org)."
+description: "Master architecture and development knowledge base for the ErTerm application ecosystem: ErTerm (SSH & Terminal client), LuluaX-Request (API client), and Cloud Backend (Hono + Drizzle ORM + Neon PostgreSQL at https://www.er-service.duckdns.org)."
 ---
 
 # LuluaX Suite — Master Architecture & Agent Guide
@@ -15,7 +15,7 @@ Ekosistem LuluaX terdiri dari 3 aplikasi modular:
 
 ## 1. Domain Production & Kredensial Database
 
-- **Live Production URL**: `https://www.luluax-service.duckdns.org` (Vercel alias: `https://luluax-backend.vercel.app`).
+- **Live Production URL**: `https://www.er-service.duckdns.org` (Vercel alias: `https://er-backend.vercel.app`).
 - **Database**: Neon Serverless PostgreSQL (`db_luluax`, region `ap-southeast-1`).
   - Connection String: `postgresql://neondb_owner:npg_EWw0qGvQH4PN@ep-bold-meadow-ao2moct0-pooler.c-2.ap-southeast-1.aws.neon.tech/db_luluax?sslmode=require`
 - **Seeded Akun Pengguna**:
