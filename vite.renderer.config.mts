@@ -20,4 +20,5 @@ export default defineConfig({
     },
     preserveSymlinks: true,
   },
+  envPrefix: ["VITE_", "CLOUD_", "PORT"],
 });
