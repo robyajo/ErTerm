@@ -1,6 +1,6 @@
-# Fitur Khas Termius pada LuluaX-Term
+# Fitur Khas Termius pada ErTerm
 
-Dokumen ini memuat detail spesifikasi dan alur operasional fitur-fitur khas **Termius** yang telah diimplementasikan pada **LuluaX-Term**.
+Dokumen ini memuat detail spesifikasi dan alur operasional fitur-fitur khas **Termius** yang telah diimplementasikan pada **ErTerm**.
 
 ---
 

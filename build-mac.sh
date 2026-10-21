@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# LuluaX-Term — macOS Native Package Builder (.dmg & .app)
+# ErTerm — macOS Native Package Builder (.dmg & .app)
 # ==============================================================================
 
 set -e
@@ -15,7 +15,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${CYAN}======================================================${NC}"
-echo -e "${CYAN}   LuluaX-Term — macOS Builder (Apple Silicon/Intel)  ${NC}"
+echo -e "${CYAN}   ErTerm — macOS Builder (Apple Silicon/Intel)  ${NC}"
 echo -e "${CYAN}======================================================${NC}"
 
 # Check Node.js & npm

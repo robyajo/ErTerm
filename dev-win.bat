@@ -1,7 +1,7 @@
 @echo off
-title LuluaX-Term (Development Mode)
+title ErTerm (Development Mode)
 echo ========================================================
-echo       LuluaX-Term — Windows Development Launcher        
+echo       ErTerm — Windows Development Launcher        
 echo ========================================================
 echo.
 
@@ -23,7 +23,7 @@ echo Compiling TypeScript source (src -> dist-electron)...
 call npx tsc
 
 echo [1/2] Starting backend terminal server on port 3980...
-start "LuluaX-Term Server" /b node dist-electron/server.js
+start "ErTerm Server" /b node dist-electron/server.js
 
 timeout /t 2 /nobreak >nul
 
@@ -39,4 +39,4 @@ if exist "node_modules\electron" (
 )
 
 echo.
-echo LuluaX-Term dev server is running at http://127.0.0.1:3980
+echo ErTerm dev server is running at http://127.0.0.1:3980

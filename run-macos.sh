@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # ========================================================
-#   LuluaX-Term Launcher for macOS (Apple Silicon & Intel)
+#   ErTerm Launcher for macOS (Apple Silicon & Intel)
 # ========================================================
 
 echo "========================================================"
-echo "         Starting LuluaX-Term Terminal Client           "
+echo "         Starting ErTerm Terminal Client           "
 echo "========================================================"
 
 # Determine directory
@@ -41,7 +41,7 @@ trap "kill $SERVER_PID 2>/dev/null; exit" SIGINT SIGTERM EXIT
 sleep 2
 
 # Open in Native Desktop Window Mode (Chrome / Edge / Brave / Safari)
-echo "[2/2] Launching LuluaX-Term Application Window..."
+echo "[2/2] Launching ErTerm Application Window..."
 
 if [ -d "/Applications/Google Chrome.app" ]; then
     open -na "Google Chrome" --args --app=http://127.0.0.1:3980 --window-size=1200,800
@@ -54,7 +54,7 @@ else
 fi
 
 echo ""
-echo ">> LuluaX-Term is running at: http://127.0.0.1:3980"
+echo ">> ErTerm is running at: http://127.0.0.1:3980"
 echo ">> Press Ctrl+C in this terminal window to stop the server."
 
 wait $SERVER_PID

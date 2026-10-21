@@ -1,6 +1,6 @@
-# Panduan Development & Build LuluaX-Term
+# Panduan Development & Build ErTerm
 
-Dokumen ini memuat panduan lengkap alur kerja pengembangan (*development workflow*) dan proses pemaketan installer untuk platform **Windows** dan **macOS (Apple Silicon & Intel)** pada aplikasi **LuluaX-Term**.
+Dokumen ini memuat panduan lengkap alur kerja pengembangan (*development workflow*) dan proses pemaketan installer untuk platform **Windows** dan **macOS (Apple Silicon & Intel)** pada aplikasi **ErTerm**.
 
 ---
 
@@ -18,22 +18,22 @@ Dokumen ini memuat panduan lengkap alur kerja pengembangan (*development workflo
 ### A. Review Cepat saat Development (Portable):
 Jalankan file **`dev-portable.bat`** (bisa dobel-klik via File Explorer):
 ```cmd
-cd luluax-term
+cd erterm
 dev-portable.bat
 ```
 - Otomatis mematikan proses lama jika sedang berjalan.
-- Mengompilasi versi portable ke `dist\LuluaX-Term 1.0.0.exe`.
+- Mengompilasi versi portable ke `dist\ErTerm 1.0.0.exe`.
 - **Langsung meluncurkan aplikasi di layar** tanpa meminta instalasi.
 
 ### B. Membuat Installer Resmi untuk Rilis (NSIS Setup):
 Jalankan file **`build-installer.bat`**:
 ```cmd
-cd luluax-term
+cd erterm
 build-installer.bat
 ```
 - Menghasilkan installer setup resmi:
-  👉 **`dist\LuluaX-Term Setup 1.0.0.exe`** (~117 MB).
-- Installer ini akan memasang aplikasi ke folder `%LOCALAPPDATA%\Programs\LuluaX-Term`, membuat Desktop shortcut, Start Menu shortcut, dan mendaftarkan uninstaller di Windows Settings.
+  👉 **`dist\ErTerm Setup 1.0.0.exe`** (~117 MB).
+- Installer ini akan memasang aplikasi ke folder `%LOCALAPPDATA%\Programs\ErTerm`, membuat Desktop shortcut, Start Menu shortcut, dan mendaftarkan uninstaller di Windows Settings.
 
 ---
 
@@ -41,7 +41,7 @@ build-installer.bat
 
 ### A. Mode Development di macOS:
 ```bash
-cd luluax-term
+cd erterm
 chmod +x dev-mac.sh
 ./dev-mac.sh
 ```
@@ -51,7 +51,7 @@ chmod +x dev-mac.sh
 
 ### B. Build Installer Native macOS (.dmg & .app):
 ```bash
-cd luluax-term
+cd erterm
 chmod +x build-mac.sh
 ./build-mac.sh              # Default: Apple Silicon (arm64)
 ./build-mac.sh --x64        # Opsi untuk Intel x86_64
@@ -90,4 +90,4 @@ Aplikasi telah terintegrasi penuh dengan sistem pembaruan otomatis:
    # Di Windows
    publish.bat
    ```
-   *Skrip otomatis memaketkan installer, menghasilkan `latest.yml`, dan mengunggahnya ke GitHub Releases `robyajo/luluax-term`. Pengguna yang sedang membuka aplikasi akan otomatis menerima banner notifikasi pembaruan beserta catatan rilis (release notes).*
+   *Skrip otomatis memaketkan installer, menghasilkan `latest.yml`, dan mengunggahnya ke GitHub Releases `robyajo/erterm`. Pengguna yang sedang membuka aplikasi akan otomatis menerima banner notifikasi pembaruan beserta catatan rilis (release notes).*

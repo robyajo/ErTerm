@@ -1,6 +1,6 @@
-# Dokumentasi Resmi LuluaX-Term
+# Dokumentasi Resmi ErTerm
 
-Dokumentasi teknis internal aplikasi **LuluaX-Term** (Terminal & SSH Client multi-platform Windows & macOS Apple Silicon).
+Dokumentasi teknis internal aplikasi **ErTerm** (Terminal & SSH Client multi-platform Windows & macOS Apple Silicon).
 
 ---
 

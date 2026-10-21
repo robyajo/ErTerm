@@ -1,4 +1,4 @@
-# Panduan & Konvensi AI Agent — LuluaX-Term
+# Panduan & Konvensi AI Agent — ErTerm
 
 > **PERINGATAN WAJIB DIPATUHI (MANDATORY POLICY)**:  
 > Seluruh AI Agent yang bekerja pada repositori ini **WAJIB MEMATUHI** seluruh aturan arsitektur, standar teknis, dan prosedur kerja yang tertera pada berkas ini serta direktori [`.agents/skills/`](file:///.agents/skills/). Pelanggaran terhadap invarian teknis (seperti penulisan berkas di dalam bundle ASAR, pemaksaan rebuild modul C++ native, pembocoran istilah teknis internal pada rilis publik, atau pelanggaran port) dapat merusak kestabilan aplikasi.
@@ -9,28 +9,28 @@
 
 Aplikasi ini memiliki 2 skill inti yang **wajib dipatuhi**:
 
-1. **`luluax-term`** ([`.agents/skills/luluax-term/SKILL.md`](file:///.agents/skills/luluax-term/SKILL.md)): Panduan master arsitektur Terminal & SSH Client, Mesin PTY (Windows ConPTY & macOS `/bin/zsh`), Dual-Pane SFTP Manager (khas Termius), Port Forwarding/SSH Tunnels, SSH Key Vault (Ed25519 & RSA), dan integrasi Cloud Sync.
+1. **`erterm`** ([`.agents/skills/erterm/SKILL.md`](file:///.agents/skills/erterm/SKILL.md)): Panduan master arsitektur Terminal & SSH Client, Mesin PTY (Windows ConPTY & macOS `/bin/zsh`), Dual-Pane SFTP Manager (khas Termius), Port Forwarding/SSH Tunnels, SSH Key Vault (Ed25519 & RSA), dan integrasi Cloud Sync.
 2. **`activity-sync`** ([`.agents/skills/activity-sync/SKILL.md`](file:///.agents/skills/activity-sync/SKILL.md)): Standar pencatatan rilis dwibahasa publik dan sinkronisasi kegiatan ke portfolio API.
 
 ---
 
 ## 2. Aturan Teknis & Invarian Kritis (Wajib Dipatuhi)
 
-Setiap modifikasi kode pada `LuluaX-Term` harus mematuhi invarian berikut:
+Setiap modifikasi kode pada `ErTerm` harus mematuhi invarian berikut:
 
 ### A. Lokasi Penyimpanan Data Writable (Mencegah Crash `ENOTDIR` di ASAR)
 - Saat aplikasi dibundel sebagai executable desktop Electron (`.exe` di Windows atau `.app` di macOS), `__dirname` berada di dalam file arsip `app.asar` yang bersifat **read-only**.
 - **DILARANG KERAS** memanggil operasi tulis file (`fs.writeFileSync`, `fs.mkdirSync`, dll.) langsung ke path berbasis `__dirname` tanpa abstraksi.
-- **WAJIB** menggunakan fungsi pembantu `getWritableDataDir('LuluaX-Term', ...)` yang telah disediakan di `server.js`. Fungsi ini mengarahkan penyimpanan data ke direktori pengguna yang aman:
-  - **Windows**: `%APPDATA%\LuluaX-Term`
-  - **macOS**: `~/Library/Application Support/LuluaX-Term`
-  - **Linux / Fallback**: `~/.luluax-term`
+- **WAJIB** menggunakan fungsi pembantu `getWritableDataDir('ErTerm', ...)` yang telah disediakan di `server.js`. Fungsi ini mengarahkan penyimpanan data ke direktori pengguna yang aman:
+  - **Windows**: `%APPDATA%\ErTerm`
+  - **macOS**: `~/Library/Application Support/ErTerm`
+  - **Linux / Fallback**: `~/.erterm`
 
 ### B. Penanganan Buffer Upload Sementara (SFTP & File Transfer)
 - **DILARANG** membuat folder buffer sementara di dalam direktori proyek lokal.
 - Gunakan direktori temporer sistem operasi:
   ```js
-  const uploadDir = path.join(os.tmpdir(), 'luluax-term-uploads');
+  const uploadDir = path.join(os.tmpdir(), 'erterm-uploads');
   ```
   untuk konfigurasi `multer` pada alur transfer berkas SFTP.
 

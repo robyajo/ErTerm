@@ -1700,7 +1700,7 @@ wss.on('connection', (ws: WebSocket) => {
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`\n======================================================`);
-  console.log(`         LuluaX-Term SSH & Terminal Manager           `);
+  console.log(`            ErTerm SSH & Terminal Manager             `);
   console.log(`  Local URL: http://127.0.0.1:${PORT}                  `);
   console.log(`======================================================\n`);
 });

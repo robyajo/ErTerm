@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# LuluaX-Term — GitHub Releases Auto-Publish Script with Smart Version Bumping
+# ErTerm — GitHub Releases Auto-Publish Script with Smart Version Bumping
 # ==============================================================================
 
 set -e
@@ -15,7 +15,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${CYAN}======================================================${NC}"
-echo -e "${CYAN}  LuluaX-Term — GitHub Releases Publisher with Bumper  ${NC}"
+echo -e "${CYAN}  ErTerm — GitHub Releases Publisher with Bumper  ${NC}"
 echo -e "${CYAN}======================================================${NC}"
 
 # 1. Check GitHub Token
@@ -116,6 +116,6 @@ git tag -a "v${NEW_VER}" -m "Release v${NEW_VER}" -f
 git push origin main --tags || true
 
 echo -e "\n${GREEN}======================================================${NC}"
-echo -e "${GREEN}✓ PUBLISH SUCCESS! LuluaX-Term v${NEW_VER} telah live di GitHub!${NC}"
+echo -e "${GREEN}✓ PUBLISH SUCCESS! ErTerm v${NEW_VER} telah live di GitHub!${NC}"
 echo -e "${GREEN}Pengguna lama akan otomatis menerima update tanpa perlu uninstall.${NC}"
 echo -e "${GREEN}======================================================${NC}"

@@ -1,6 +1,6 @@
-# Arsitektur Teknis LuluaX-Term
+# Arsitektur Teknis ErTerm
 
-Dokumen ini menjelaskan rancangan arsitektur internal aplikasi **LuluaX-Term**, alur komunikasi data, manajemen proses terminal lokal dan remote SSH, serta penanganan lingkungan runtime Electron ASAR.
+Dokumen ini menjelaskan rancangan arsitektur internal aplikasi **ErTerm**, alur komunikasi data, manajemen proses terminal lokal dan remote SSH, serta penanganan lingkungan runtime Electron ASAR.
 
 ---
 
@@ -55,12 +55,12 @@ Dokumen ini menjelaskan rancangan arsitektur internal aplikasi **LuluaX-Term**, 
 Saat aplikasi dikompilasi ke executable `.exe` Windows atau `.app` macOS, seluruh kode dipaketkan ke dalam arsip virtual `app.asar`.
 - `app.asar` adalah file tunggal (*read-only virtual container*).
 - Menjalankan `fs.mkdirSync` atau `fs.writeFileSync` ke path `__dirname/data` di dalam ASAR akan melempar error fatal `ENOTDIR: not a directory`.
-- **Solusi LuluaX-Term**:
-  Menggunakan fungsi `getWritableDataDir('LuluaX-Term', defaultDataPath)`:
+- **Solusi ErTerm**:
+  Menggunakan fungsi `getWritableDataDir('ErTerm', defaultDataPath)`:
   - Mengalihkan penyimpanan data runtime dinamis (`hosts.json`, `snippets.json`, `settings.json`, `tunnels.json`, `keys.json`) ke:
-    - **Windows**: `%APPDATA%\LuluaX-Term` (`C:\Users\<user>\AppData\Roaming\LuluaX-Term`)
-    - **macOS**: `~/Library/Application Support/LuluaX-Term`
-  - Mengalihkan buffer upload sementara `multer` ke `os.tmpdir()` (`AppData\Local\Temp\luluax-term-uploads`).
+    - **Windows**: `%APPDATA%\ErTerm` (`C:\Users\<user>\AppData\Roaming\ErTerm`)
+    - **macOS**: `~/Library/Application Support/ErTerm`
+  - Mengalihkan buffer upload sementara `multer` ke `os.tmpdir()` (`AppData\Local\Temp\erterm-uploads`).
   - Menyalin file template awal dari paket read-only ke folder AppData pada saat peluncuran pertama kali.
 
 ---

@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
-title LuluaX-Term — Release Publisher
+title ErTerm — Release Publisher
 echo ========================================================
-echo   LuluaX-Term — GitHub Releases Publisher with Bumper   
+echo   ErTerm — GitHub Releases Publisher with Bumper   
 echo ========================================================
 echo.
 
@@ -72,9 +72,9 @@ if %errorlevel% neq 0 (
 :: 6. Build and Publish
 echo.
 echo [2/3] Memaketkan installer dan mengunggah ke GitHub Releases...
-taskkill /F /IM "LuluaX-Term.exe" >nul 2>nul
-taskkill /F /IM "LuluaX-Term 1*.exe" >nul 2>nul
-taskkill /F /IM "LuluaX-Term Setup*.exe" >nul 2>nul
+taskkill /F /IM "ErTerm.exe" >nul 2>nul
+taskkill /F /IM "ErTerm 1*.exe" >nul 2>nul
+taskkill /F /IM "ErTerm Setup*.exe" >nul 2>nul
 
 call npx electron-builder --win nsis portable --publish always
 if %errorlevel% neq 0 (

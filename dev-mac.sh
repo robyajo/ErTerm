@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# LuluaX-Term — macOS Development Launcher (Apple Silicon & Intel)
+# ErTerm — macOS Development Launcher (Apple Silicon & Intel)
 # ==============================================================================
 
 set -e
@@ -15,7 +15,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${CYAN}======================================================${NC}"
-echo -e "${CYAN}      LuluaX-Term — macOS Development Environment     ${NC}"
+echo -e "${CYAN}      ErTerm — macOS Development Environment     ${NC}"
 echo -e "${CYAN}======================================================${NC}"
 
 ARCH=$(uname -m)
@@ -44,7 +44,7 @@ echo -e "${CYAN}[1/2] Starting backend terminal server on port ${PORT}...${NC}"
 node dist-electron/server.js &
 SERVER_PID=$!
 
-trap "echo -e '\n${YELLOW}Stopping LuluaX-Term server (PID: $SERVER_PID)...${NC}'; kill $SERVER_PID 2>/dev/null; exit 0" SIGINT SIGTERM EXIT
+trap "echo -e '\n${YELLOW}Stopping ErTerm server (PID: $SERVER_PID)...${NC}'; kill $SERVER_PID 2>/dev/null; exit 0" SIGINT SIGTERM EXIT
 
 sleep 2
 
@@ -61,5 +61,5 @@ else
     open "http://127.0.0.1:${PORT}"
 fi
 
-echo -e "\n${GREEN}>> LuluaX-Term running at: http://127.0.0.1:${PORT}${NC}"
+echo -e "\n${GREEN}>> ErTerm running at: http://127.0.0.1:${PORT}${NC}"
 wait $SERVER_PID

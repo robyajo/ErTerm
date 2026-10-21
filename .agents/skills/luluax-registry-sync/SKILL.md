@@ -5,7 +5,7 @@ description: "Aturan arsitektur penyimpanan data per akun (registry-<accountId>.
 
 # LuluaX Registry & Cloud Sync Architecture
 
-Dokumen ini memuat kontrak teknis wajib bagi seluruh agen AI yang bekerja di ekosistem LuluaX (LuluaX-Term, LuluaX-Request, dan Backend).
+Dokumen ini memuat kontrak teknis wajib bagi seluruh agen AI yang bekerja di ekosistem LuluaX (ErTerm, LuluaX-Request, dan Backend).
 
 ---
 
@@ -13,8 +13,8 @@ Dokumen ini memuat kontrak teknis wajib bagi seluruh agen AI yang bekerja di eko
 
 1. **Per-Account Scoped Registry**:
    - Setiap pengguna memiliki snapshot data terisolasi yang disimpan di berkas:
-     `%APPDATA%/LuluaX-Term/registry-<accountId>.json` (Windows)
-     `~/Library/Application Support/LuluaX-Term/registry-<accountId>.json` (macOS).
+     `%APPDATA%/ErTerm/registry-<accountId>.json` (Windows)
+     `~/Library/Application Support/ErTerm/registry-<accountId>.json` (macOS).
    - Berkas ini memuat seluruh status workspace pengguna: folder, host, port forwarding/tunnel, key vault, cuplikan perintah (snippets), dan pengaturan personal.
 
 2. **Multi-Device Parity (Cloud Synchronization)**:
@@ -99,7 +99,7 @@ Jika di masa mendatang agen AI menambahkan fitur baru (misalnya: *Identity Crede
 4. **Perbarui UI & Sinkronisasi Real-Time**:
    - Pastikan setiap aksi simpan/ubah di UI memicu `this.triggerDebouncedSync()`.
 5. **Wajib Perbarui `CHANGELOG.md`**:
-   - Setiap kali agen AI melakukan perubahan kode, perbaikan bug, penambahan fitur, atau rilis, AI WAJIB memperbarui berkas `CHANGELOG.md` pada aplikasi yang terdampak (`luluax-term/CHANGELOG.md`, `luluax-request/CHANGELOG.md`, atau `backend/CHANGELOG.md`) menggunakan format standar Keep a Changelog.
+   - Setiap kali agen AI melakukan perubahan kode, perbaikan bug, penambahan fitur, atau rilis, AI WAJIB memperbarui berkas `CHANGELOG.md` pada aplikasi yang terdampak (`erterm/CHANGELOG.md`, `luluax-request/CHANGELOG.md`, atau `backend/CHANGELOG.md`) menggunakan format standar Keep a Changelog.
 6. **Verifikasi Kompilasi & Lakukan Activity-Sync**:
-   - Jalankan `npm run build` di `luluax-term/` dan `luluax-request/`, serta `npx tsc --noEmit` di `backend/`.
+   - Jalankan `npm run build` di `erterm/` dan `luluax-request/`, serta `npx tsc --noEmit` di `backend/`.
    - Wajib eksekusi `activity-sync` ke API portfolio (`https://ajoroby.is-a.dev/api/activities`).

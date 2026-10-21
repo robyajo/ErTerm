@@ -1,7 +1,7 @@
 @echo off
-title LuluaX-Term (Development Portable Review)
+title ErTerm (Development Portable Review)
 echo ========================================================
-echo   LuluaX-Term — Build Portable and Launch for Review    
+echo   ErTerm — Build Portable and Launch for Review    
 echo ========================================================
 echo.
 
@@ -15,8 +15,8 @@ if %errorlevel% neq 0 (
 )
 
 :: Close running instances to unlock binary
-taskkill /F /IM "LuluaX-Term.exe" >nul 2>nul
-taskkill /F /IM "LuluaX-Term 1.0.0.exe" >nul 2>nul
+taskkill /F /IM "ErTerm.exe" >nul 2>nul
+taskkill /F /IM "ErTerm 1.0.0.exe" >nul 2>nul
 
 echo [1/2] Building standalone portable executable...
 call npx electron-builder --win portable --publish never
@@ -29,8 +29,8 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [2/2] Launching portable app for instant review...
-if exist "dist\LuluaX-Term 1.0.0.exe" (
-    start "" "dist\LuluaX-Term 1.0.0.exe"
+if exist "dist\ErTerm 1.0.0.exe" (
+    start "" "dist\ErTerm 1.0.0.exe"
     echo App launched! Check your taskbar / screen.
 ) else (
     echo Binary not found in dist!

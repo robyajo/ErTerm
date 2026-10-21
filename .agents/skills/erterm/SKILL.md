@@ -1,11 +1,11 @@
 ---
-name: luluax-term
-description: "Arsitektur dan panduan pengembangan aplikasi LuluaX-Term: Terminal & SSH Client multi-platform (Windows x64/ARM64 dan macOS Apple Silicon M-Series). Meliputi xterm.js v6.0, Windows ConPTY, macOS PTY (/bin/zsh), Pure JS SSH2, Dual-Pane SFTP Manager (khas Termius), Port Forwarding/SSH Tunnels, Cryptographic SSH Key Vault (Ed25519 & RSA), dan Cloud Sync ke Hono + Neon PostgreSQL (https://www.luluax-service.duckdns.org). Gunakan skill ini setiap kali mengembangkan, memperbaiki bug, menambah fitur, atau memaketkan aplikasi LuluaX-Term."
+name: erterm
+description: "Arsitektur dan panduan pengembangan aplikasi ErTerm: Terminal & SSH Client multi-platform (Windows x64/ARM64 dan macOS Apple Silicon M-Series). Meliputi xterm.js v6.0, Windows ConPTY, macOS PTY (/bin/zsh), Pure JS SSH2, Dual-Pane SFTP Manager (khas Termius), Port Forwarding/SSH Tunnels, Cryptographic SSH Key Vault (Ed25519 & RSA), dan Cloud Sync ke Hono + Neon PostgreSQL (https://www.luluax-service.duckdns.org). Gunakan skill ini setiap kali mengembangkan, memperbaiki bug, menambah fitur, atau memaketkan aplikasi ErTerm."
 ---
 
-# LuluaX-Term — Panduan Arsitektur & Pengembangan AI Agent
+# ErTerm — Panduan Arsitektur & Pengembangan AI Agent
 
-Skill ini memuat seluruh panduan arsitektur, struktur kode, alur kerja, konvensi, dan aturan teknis untuk mengembangkan aplikasi **LuluaX-Term** di perangkat mana pun.
+Skill ini memuat seluruh panduan arsitektur, struktur kode, alur kerja, konvensi, dan aturan teknis untuk mengembangkan aplikasi **ErTerm** di perangkat mana pun.
 
 ---
 
@@ -15,12 +15,12 @@ Skill ini memuat seluruh panduan arsitektur, struktur kode, alur kerja, konvensi
 - **Frontend**:
   - Mesin Terminal: `@xterm/xterm` (v6.0) dengan addons `@xterm/addon-fit` dan `@xterm/addon-web-links`.
   - UI Engine: Vanilla JavaScript SPA dengan tema Termius Desktop Dark (`public/index.html`, `public/style.css`, `public/app.js`).
-  - **Skill Khusus Desain UI**: Lihat [luluax-termius-ui](../luluax-termius-ui/SKILL.md) untuk panduan lengkap desain sistem Termius, hierarki DOM, token warna, distro SVG badges, dan panel inspector dengan debounced auto-save.
+  - **Skill Khusus Desain UI**: Lihat [ertermius-ui](../ertermius-ui/SKILL.md) untuk panduan lengkap desain sistem Termius, hierarki DOM, token warna, distro SVG badges, dan panel inspector dengan debounced auto-save.
 - **Backend Lokal (`server.js`)**:
   - Server: Express + WebSocket Server (`ws`) pada port bawaan **3980** (dapat diubah via `PORT` di `.env`).
   - SSH Client: Pure JavaScript `ssh2` Client (mendukung enkripsi modern, private key PEM/OpenSSH, passphrase, keepalive).
   - Local PTY Engine: `node-pty` menggunakan Windows ConPTY di Windows dan native `/bin/zsh` (atau `/bin/bash`) di macOS.
-  - Penyimpanan Data: `AppData/Roaming/LuluaX-Term` di Windows atau `~/Library/Application Support/LuluaX-Term` di macOS (menghindari error `ENOTDIR` saat dibundel ASAR).
+  - Penyimpanan Data: `AppData/Roaming/ErTerm` di Windows atau `~/Library/Application Support/ErTerm` di macOS (menghindari error `ENOTDIR` saat dibundel ASAR).
 - **Cloud Backend**:
   - Live Domain: `https://www.luluax-service.duckdns.org` (Hono Serverless + Drizzle ORM + Neon PostgreSQL).
 
@@ -63,7 +63,7 @@ Skill ini memuat seluruh panduan arsitektur, struktur kode, alur kerja, konvensi
 ## 3. Struktur Direktori Proyek
 
 ```
-luluax-term/
+erterm/
 ├── .env                       # PORT=3980, CLOUD_API_URL, CLOUD_SYNC_KEY
 ├── .env.example               # Template environment
 ├── .gitignore                 # Mengabaikan node_modules, dist, temp_uploads, .env
@@ -117,9 +117,9 @@ build-win.bat
 ## 5. Aturan Penting Saat Mengedit Kode (Troubleshooting & Invariants)
 
 1. **JANGAN PERNAH MENULIS KE `__dirname` DI DALAM ASAR (Mencegah `ENOTDIR`)**:
-   Saat dibundel Electron `.exe`, `__dirname` berada di dalam file arsip `app.asar` yang bersifat *read-only*. Gunakan selalu fungsi `getWritableDataDir('LuluaX-Term', ...)` yang mengarahkan penulisan data ke `%APPDATA%\LuluaX-Term` di Windows atau `~/Library/Application Support/LuluaX-Term` di macOS.
+   Saat dibundel Electron `.exe`, `__dirname` berada di dalam file arsip `app.asar` yang bersifat *read-only*. Gunakan selalu fungsi `getWritableDataDir('ErTerm', ...)` yang mengarahkan penulisan data ke `%APPDATA%\ErTerm` di Windows atau `~/Library/Application Support/ErTerm` di macOS.
 2. **Buffer Upload Sementara**:
-   Gunakan `path.join(os.tmpdir(), 'luluax-term-uploads')` untuk folder sementara `multer`, bukan folder lokal proyek.
+   Gunakan `path.join(os.tmpdir(), 'erterm-uploads')` untuk folder sementara `multer`, bukan folder lokal proyek.
 3. **Modul Native & Rebuild**:
    `node-pty` telah memiliki prebuilt binaries (`prebuilds/win32-x64/`, `prebuilds/darwin-arm64/`). Jangan jalankan `@electron/rebuild` dari C++ source secara paksa karena path dengan spasi dapat menggagalkan `node-gyp`. Konfigurasi `npmRebuild: false` di `electron-builder` harus dipertahankan.
 4. **Line Endings Script Unix**:
