@@ -55,18 +55,16 @@ const config: ForgeConfig = {
         draft: true,
         prerelease: false,
         repository: {
-          name: "electron-shadcn",
-          owner: "LuanRoger",
+          name: "ErTerm",
+          owner: "robyajo",
         },
       },
-      /*
-       * Publish release on GitHub as draft.
-       * Remember to manually publish it on GitHub website after verifying everything is correct.
-       */
       name: "@electron-forge/publisher-github",
     },
   ],
-  rebuildConfig: {},
+  rebuildConfig: {
+    onlyModules: [],
+  },
 };
 
 export default config;
