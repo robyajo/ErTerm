@@ -7,9 +7,9 @@ export default function BaseLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen w-screen flex flex-col overflow-hidden bg-background text-foreground">
-      <DragWindowRegion title="ErTerm — SSH & Terminal" />
-      <main className="flex-1 flex flex-col h-[calc(100vh-32px)] overflow-hidden">{children}</main>
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#0a0d18] text-foreground select-none">
+      <DragWindowRegion />
+      <main className="flex-1 flex flex-col h-[calc(100vh-40px)] min-h-0 overflow-hidden">{children}</main>
     </div>
   );
 }

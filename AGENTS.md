@@ -7,12 +7,13 @@
 
 ## 1. Kepatuhan Skill Wajib (.agents/skills/)
 
-Aplikasi ini memiliki 4 skill inti yang **wajib dipatuhi**:
+Aplikasi ini memiliki 5 skill inti yang **wajib dipatuhi**:
 
 1. **`erterm`** ([`.agents/skills/erterm/SKILL.md`](file:///.agents/skills/erterm/SKILL.md)): Panduan master arsitektur Terminal & SSH Client, Mesin PTY (Windows ConPTY & macOS `/bin/zsh`), Dual-Pane SFTP Manager, Port Forwarding/SSH Tunnels, SSH Key Vault, dan integrasi Cloud Sync.
 2. **`erterm-registry-sync`** ([`.agents/skills/erterm-registry-sync/SKILL.md`](file:///.agents/skills/erterm-registry-sync/SKILL.md)): Arsitektur penyimpanan registry per akun (`registry-<accountId>.json`) dan sinkronisasi multi-device.
 3. **`erterm-suite`** ([`.agents/skills/erterm-suite/SKILL.md`](file:///.agents/skills/erterm-suite/SKILL.md)): Arsitektur koordinasi ekosistem aplikasi.
 4. **`activity-sync`** ([`.agents/skills/activity-sync/SKILL.md`](file:///.agents/skills/activity-sync/SKILL.md)): Standar pencatatan rilis dwibahasa publik dan sinkronisasi kegiatan ke portfolio API.
+5. **`shadcn-ui`** ([`.agents/skills/shadcn-ui/SKILL.md`](file:///.agents/skills/shadcn-ui/SKILL.md)): Standar arsitektur komponen UI, pustaka 62+ komponen di `@/components/ui/`, integrasi Tailwind v4 + Radix, preset styling Termius Midnight Navy, serta aturan baku penggunaan shadcn CLI via npm.
 ---
 
 ## 2. Aturan Teknis & Invarian Kritis (Wajib Dipatuhi)
@@ -61,6 +62,13 @@ Setiap modifikasi kode pada `ErTerm` harus mematuhi invarian berikut:
 - Gunakan endpoint modular backend: `/api/term` untuk host, snippet, pengaturan, kunci, dan tunnel; serta `/api/sync` untuk full snapshot.
 - Kredensial dan token sesi disimpan di `localStorage` frontend (`luluax_auth_token`).
 - **DILARANG KERAS** melakukan commit file kredensial lokal seperti `.env`, `.env.local`, atau `.ACTIVITY_PROJECT_KEYS` ke repositori Git.
+
+### H. Standar Komponen Antarmuka (shadcn/ui & Termius Aesthetic)
+- **Komponen Resmi**: Seluruh elemen interaktif dan visual (tombol, formulir, dialog, modal, drawer, tabs, popover, badge, table, toast) **WAJIB** menggunakan komponen resmi shadcn/ui di `@/components/ui/*`.
+- **Anti-Adhoc**: Dilarang membuat komponen primitif mentah (raw unstyled button, custom raw modal) jika padanannya sudah tersedia di pustaka 62+ komponen `@/components/ui/`.
+- **Class Merging**: Selalu gunakan helper `cn()` dari `@/utils/tailwind` (atau `@/lib/utils`) untuk penggabungan class Tailwind kondisional.
+- **Keselarasan Warna**: Seluruh komponen harus selaras dengan tema Termius Dark (Midnight Navy: `#0a0d18`, `#0e1220`, `#161c30`, `#1c243e`, aksen `#6366f1`). Dilarang membiarkan elemen shadcn tampil dengan background putih atau border kontras terang yang merusak dark mode.
+- **Paket Manajer CLI**: Jika menambah komponen dari registry, wajib gunakan `npm dlx shadcn@latest add <component>` (jangan gunakan pnpm).
 
 ---
 

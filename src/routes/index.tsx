@@ -563,30 +563,25 @@ export function TerminalApp() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Top Header Bar */}
-        <header className="h-10 bg-[#121620] border-b border-[#1e2330] px-4 flex items-center justify-between flex-shrink-0">
+        {/* Workspace Toolbar Bar */}
+        <div className="h-9 bg-[#0e1220]/70 border-b border-[#1c243e] px-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-            <span>Workspace</span>
-            <span>/</span>
-            <span className="text-white capitalize font-semibold">{activeNav}</span>
+            <span className="text-slate-500">Workspace</span>
+            <span className="text-slate-600">/</span>
+            <span className="text-indigo-400 capitalize font-semibold">{activeNav}</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/60 border border-slate-700/60 text-[11px] font-mono text-slate-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
-              <span>v{appVersion}</span>
-            </div>
-
+          <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 alert(`ErTerm v${appVersion} sudah merupakan versi terbaru dengan arsitektur registry akun terpadu.`);
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[11px] font-semibold hover:opacity-90 transition-opacity"
+              className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-rose-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono hover:opacity-90 transition-opacity"
             >
               <span>🚀 Up to date</span>
             </button>
           </div>
-        </header>
+        </div>
 
         {/* Dynamic Views */}
         <div className="flex-1 overflow-hidden relative">

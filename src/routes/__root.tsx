@@ -8,9 +8,6 @@ function Root() {
   return (
     <BaseLayout>
       <Outlet />
-      <Activity mode={inDevelopment ? "visible" : "hidden"}>
-        <TanStackRouterDevtools />
-      </Activity>
     </BaseLayout>
   );
 }

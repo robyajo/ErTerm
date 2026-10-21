@@ -1,5 +1,5 @@
 import path from "node:path";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu } from "electron";
 import { ipcMain } from "electron/main";
 import {
   installExtension,
@@ -15,13 +15,17 @@ function createWindow() {
   const basePath = getBasePath();
   const preload = path.join(basePath, "preload.js");
   const mainWindow = new BrowserWindow({
-    width: 1240,
-    height: 800,
-    minWidth: 900,
-    minHeight: 600,
-    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
+    width: 1280,
+    height: 820,
+    minWidth: 960,
+    minHeight: 620,
+    title: "ErTerm — SSH & Terminal",
+    frame: false,
+    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
     trafficLightPosition:
-      process.platform === "darwin" ? { x: 5, y: 5 } : undefined,
+      process.platform === "darwin" ? { x: 12, y: 12 } : undefined,
+    backgroundColor: "#0a0d18",
+    autoHideMenuBar: true,
     webPreferences: {
       contextIsolation: true,
       devTools: inDevelopment,
@@ -30,6 +34,7 @@ function createWindow() {
       preload,
     },
   });
+  Menu.setApplicationMenu(null);
   ipcContext.setMainWindow(mainWindow);
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
