@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-23",
+  "type": "feature",
+  "project": {
+    "name": "ErTerm"
+  },
+  "title": {
+    "id": "Sinkronisasi Master Registry Terpadu, Dialog Interaktif Kunci & Tunnel, serta Alur Verifikasi Sidik Jari",
+    "en": "Unified Master Registry Synchronization, Interactive Keys & Tunnels Dialogs, and Host Fingerprint Verification Flow"
+  },
+  "body": {
+    "id": "Pembaruan hari ini menghadirkan sinkronisasi otomatis seluruh pengaturan, server, grup, port forwarding, snippet, dan kunci ke dalam master registry terpadu di backend. Dilengkapi modal interaktif pembuatan kunci kriptografi SSH, manajemen tunnel port forwarding dengan saklar daya, pustaka snippet perintah, integrasi toggle tema gelap/terang seketika, dan penyempurnaan alur verifikasi sidik jari server saat koneksi perdana.",
+    "en": "Today's update introduces automatic synchronization of all settings, servers, groups, port forwarding, snippets, and keys into a unified master registry on the backend. It features interactive modal dialogs for generating cryptographic SSH keys, port forwarding tunnel management with instant toggles, command snippet library, real-time dark/light theme switching, and seamless host fingerprint verification on first-time connection."
+  },
+  "items": [
+    {
+      "type": "feature",
+      "id": "Master Registry Terpadu: Seluruh data server, grup folder, preferensi tema, tunnel, snippet, dan kunci kriptografi otomatis terkompilasi dan tersinkronisasi ke berkas registry terpadu.",
+      "en": "Unified Master Registry: All server data, folder groups, theme preferences, tunnels, snippets, and cryptographic keys are automatically compiled and synchronized into a unified registry."
+    },
+    {
+      "type": "feature",
+      "id": "Modal Generator Kunci Kriptografi SSH: Fasilitas pembuatan kunci Ed25519 dan RSA langsung dari antarmuka Keychain dengan indikator salin kunci publik dan penghapusan aman.",
+      "en": "Cryptographic SSH Key Generator Modal: Direct creation of Ed25519 and RSA key pairs from the Keychain interface with public key copy indicators and safe deletion."
+    },
+    {
+      "type": "feature",
+      "id": "Manajemen Port Forwarding & SSH Tunnels Interaktif: Formulir penambahan tunnel lokal, remote, dan SOCKS5 dengan saklar on/off real-time.",
+      "en": "Interactive Port Forwarding & SSH Tunnel Management: Create local, remote, and SOCKS5 tunnels with real-time on/off switches."
+    },
+    {
+      "type": "feature",
+      "id": "Pustaka Snippet Perintah Cepat: Modal dialog penyimpanan perintah CLI favorit dengan kategori, tag, dan salin perintah instan.",
+      "en": "Quick Command Snippet Library: Interactive dialog for saving favorite CLI commands with categories, tags, and one-click copy."
+    },
+    {
+      "type": "fix",
+      "id": "Alur Verifikasi Sidik Jari (Host Fingerprint): Sesi koneksi SSH perdana kini meminta konfirmasi fingerprint dengan dialog jelas tanpa risiko koneksi terputus tiba-tiba.",
+      "en": "Host Fingerprint Verification Flow: Initial SSH connections now prompt for fingerprint confirmation with clear dialogs without unexpected connection drops."
+    },
+    {
+      "type": "improvement",
+      "id": "Sinkronisasi Tema Seketika: Pergantian tema gelap dan terang langsung dikirimkan ke backend sehingga konsisten saat aplikasi dibuka di perangkat mana pun.",
+      "en": "Instant Theme Synchronization: Dark and light theme switches are dispatched immediately to the backend, ensuring visual consistency across all devices."
+    },
+    {
+      "type": "improvement",
+      "id": "Navigasi Tab Baru Terpadu: Tombol + New Tab dan pintasan Ctrl+T kini langsung mengarahkan pengguna ke katalog Semua Server.",
+      "en": "Unified New Tab Navigation: The + New Tab button and Ctrl+T shortcut now bring users directly to the All Servers catalog."
+    }
+  ]
+}
