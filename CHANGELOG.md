@@ -6,6 +6,10 @@ dan proyek ini mematuhi [Semantic Versioning](https://semver.org/lang/id/).
 
 ## [1.0.3] - 2026-10-22
 
+### Fixed
+- **Penyelarasan Bilah Judul macOS & Windows**: Penataan presisi posisi tombol kontrol jendela bawaan macOS (*traffic lights*) dengan padding adaptif, pencegahan kebocoran tombol kontrol Windows ke macOS, serta eliminasi duplikasi logo pada navigasi samping agar batas antarmuka sejajar rapi.
+- **Pemuatan Modul Native Desktop**: Mengonfigurasi eksternalisasi modul native runtime (`ssh2`, `cpu-features`, `node-pty`) dan auto-unpack biner native dari arsip ASAR untuk mencegah kegagalan kompilasi bundler saat membaca berkas biner.
+
 ### Added
 - **Migrasi Arsitektur Penuh ke React 19 + Vite + Tailwind CSS + shadcn/ui**: Membangun antarmuka terminal desktop modern dengan komponen UI terlengkap dari shadcn/ui, TanStack Router, dan tema gelap presisi.
 - **Integrasi Mesin Inti Terminal (Core Engine)**: Menanamkan mesin terminal backend teruji (port 3980) yang mencakup WebSocket streaming, PTY lokal (Windows ConPTY / macOS zsh), dan klien SSH2.

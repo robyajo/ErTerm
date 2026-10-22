@@ -443,17 +443,14 @@ export function TerminalApp() {
       {/* Sidebar Navigation */}
       <aside className="w-56 bg-[#10131a] border-r border-[#1e2330] flex flex-col justify-between flex-shrink-0">
         <div>
-          {/* Brand */}
-          <div className="p-4 flex items-center gap-3 border-b border-[#1e2330]">
-            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
-              <TerminalIcon size={20} />
-            </div>
-            <div>
-              <div className="font-bold font-mono tracking-tight text-white flex items-center gap-1.5 text-base">
-                Er<span className="text-indigo-400">Term</span>
-              </div>
-              <div className="text-[11px] text-slate-400 font-mono">v{appVersion} • Core</div>
-            </div>
+          {/* Sidebar Header - aligned with workspace toolbar (h-9) */}
+          <div className="h-9 px-3.5 flex items-center justify-between border-b border-[#1e2330] text-[11px] font-mono">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+              Navigation
+            </span>
+            <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded">
+              v{appVersion}
+            </span>
           </div>
 
           {/* Navigation Items */}

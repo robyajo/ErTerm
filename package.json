@@ -120,5 +120,13 @@
     "vite": "^8.3.2",
     "vitest": "^5.0.5"
   },
-  "productName": "ErTerm"
+  "productName": "ErTerm",
+  "allowScripts": {
+    "cpu-features@0.0.10": true,
+    "electron-winstaller": true,
+    "esbuild": true,
+    "fsevents@2.3.3": true,
+    "node-pty@1.1.0": true,
+    "ssh2@1.17.0": true
+  }
 }

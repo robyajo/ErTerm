@@ -14,6 +14,9 @@ import { getBasePath } from "./utils/path";
 function createWindow() {
   const basePath = getBasePath();
   const preload = path.join(basePath, "preload.js");
+
+  const isMac = process.platform === "darwin";
+
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 820,
@@ -21,11 +24,16 @@ function createWindow() {
     minHeight: 620,
     title: "ErTerm — SSH & Terminal",
     frame: false,
-    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "hidden",
-    trafficLightPosition:
-      process.platform === "darwin" ? { x: 12, y: 12 } : undefined,
+    titleBarStyle: isMac ? "hiddenInset" : "hidden",
+    trafficLightPosition: isMac ? { x: 14, y: 14 } : undefined,
     backgroundColor: "#0a0d18",
     autoHideMenuBar: true,
+    ...(isMac
+      ? {
+          vibrancy: undefined,
+          visualEffectState: undefined,
+        }
+      : {}),
     webPreferences: {
       contextIsolation: true,
       devTools: inDevelopment,
