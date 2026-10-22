@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
+import { useTabContext } from "@/context/tab-context";
+import { DistroBadge } from "@/components/distro-badge";
 import {
   Server,
   Terminal as TerminalIcon,
@@ -28,8 +30,21 @@ import {
   X,
   ExternalLink,
   ShieldCheck,
-  Monitor,
-  Folder as FolderIcon
+  Folder,
+  LayoutGrid,
+  Tag,
+  Calendar,
+  List,
+  Layers,
+  Globe,
+  Clock,
+  Search,
+  CheckCircle2,
+  AlertCircle,
+  HelpCircle,
+  Sliders,
+  Sun,
+  Moon,
 } from "lucide-react";
 import type {
   HostItem,
@@ -38,10 +53,10 @@ import type {
   SshKeyItem,
   SnippetItem,
   SettingsData,
-  LocalFileEntry
+  LocalFileEntry,
 } from "@/core/types";
 
-interface ActiveTab {
+interface ActiveTerminalTab {
   id: string;
   host: HostItem;
   ws?: WebSocket;
@@ -49,10 +64,43 @@ interface ActiveTab {
   fitAddon?: FitAddon;
 }
 
+// Default starter servers matching Termius screenshot
+const SEED_FOLDERS: FolderItem[] = [
+  { id: "grp_kominfo", name: "KOMINFO VPS", icon: "📁", color: "#3b82f6" },
+  { id: "grp_mpp", name: "MPP SERVER", icon: "📁", color: "#6366f1" },
+];
+
+const SEED_HOSTS: HostItem[] = [
+  { id: "h1", label: "FE SUPERAPP AMAN", type: "ssh", hostname: "10.10.1.20", port: 22, username: "kominfo2", folderId: "grp_kominfo", group: "KOMINFO VPS", osType: "ubuntu" },
+  { id: "h2", label: "Bapenda Pajak MPP", type: "ssh", hostname: "10.10.2.14", port: 22, username: "p3kanbaru", folderId: "grp_mpp", group: "MPP SERVER", osType: "ubuntu" },
+  { id: "h3", label: "AMAN SUPER APP |KOMINFO (MPP) P...", type: "ssh", hostname: "10.10.1.25", port: 22, username: "kominfo4", folderId: "grp_kominfo", group: "KOMINFO VPS", osType: "ubuntu" },
+  { id: "h4", label: "VPS MITUNI", type: "ssh", hostname: "10.10.3.10", port: 22, username: "mituni", folderId: "grp_kominfo", group: "KOMINFO VPS", osType: "ubuntu" },
+  { id: "h5", label: "VPS HOME ROBY", type: "ssh", hostname: "192.168.1.100", port: 22, username: "roby", folderId: null, group: "Default", osType: "ubuntu" },
+  { id: "h6", label: "STUNTING SWEEPER", type: "ssh", hostname: "10.10.4.12", port: 22, username: "stunting", folderId: "grp_kominfo", group: "KOMINFO VPS", osType: "ubuntu" },
+  { id: "h7", label: "ROBY DEV", type: "ssh", hostname: "192.168.1.101", port: 22, username: "roby", folderId: null, group: "Default", osType: "ubuntu" },
+  { id: "h8", label: "Camp", type: "ssh", hostname: "10.10.5.15", port: 22, username: "camp", folderId: null, group: "Default", osType: "ubuntu" },
+  { id: "h9", label: "OPD Pekanbaru", type: "ssh", hostname: "10.10.6.18", port: 22, username: "admin", folderId: "grp_kominfo", group: "KOMINFO VPS", osType: "ubuntu" },
+  { id: "h10", label: "KOMINFO WEB OPD", type: "ssh", hostname: "10.10.6.20", port: 22, username: "admin", folderId: "grp_kominfo", group: "KOMINFO VPS", osType: "ubuntu" },
+  { id: "h11", label: "Camp Server", type: "ssh", hostname: "10.10.5.16", port: 22, username: "camp", folderId: null, group: "Default", osType: "ubuntu" },
+  { id: "h12", label: "Jobfair Pekanbaru Disnaker | KOMINFO", type: "ssh", hostname: "10.10.7.22", port: 22, username: "roby", folderId: "grp_kominfo", group: "KOMINFO VPS", osType: "ubuntu" },
+  { id: "h13", label: "BIMA FE", type: "ssh", hostname: "10.10.8.30", port: 22, username: "bimafe", folderId: "grp_mpp", group: "MPP SERVER", osType: "ubuntu" },
+  { id: "h14", label: "Jobfair No VPN", type: "ssh", hostname: "10.10.7.25", port: 22, username: "roby", folderId: null, group: "Default", osType: "ubuntu" },
+  { id: "h15", label: "Pohon FE dan Silabus", type: "ssh", hostname: "10.10.9.40", port: 22, username: "roby", folderId: "grp_mpp", group: "MPP SERVER", osType: "server" },
+  { id: "h16", label: "Silabus Dan Pohon", type: "ssh", hostname: "10.10.9.41", port: 22, username: "roby", folderId: "grp_mpp", group: "MPP SERVER", osType: "server" },
+];
+
 export function TerminalApp() {
-  const [activeNav, setActiveNav] = useState<
-    "hosts" | "terminals" | "sftp" | "tunnels" | "keys" | "snippets" | "settings"
-  >("hosts");
+  const {
+    activeTabId,
+    setActiveTabId,
+    openTab,
+    closeTab: closeContextTab,
+    activeNav,
+    setActiveNav,
+    theme,
+    toggleTheme,
+    setOnNewTabTrigger,
+  } = useTabContext();
 
   const [hosts, setHosts] = useState<HostItem[]>([]);
   const [folders, setFolders] = useState<FolderItem[]>([]);
@@ -60,14 +108,14 @@ export function TerminalApp() {
   const [tunnels, setTunnels] = useState<TunnelItem[]>([]);
   const [keys, setKeys] = useState<SshKeyItem[]>([]);
   const [settings, setSettings] = useState<SettingsData>({});
-  const [appVersion, setAppVersion] = useState("1.0.3");
+  const [appVersion, setAppVersion] = useState("1.0.4");
 
   const [searchHost, setSearchHost] = useState("");
   const [activeGroup, setActiveGroup] = useState("All");
+  const [quickMenuOpen, setQuickMenuOpen] = useState(false);
 
-  // Terminal state
-  const [tabs, setTabs] = useState<ActiveTab[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  // Terminal active tabs
+  const [terminalTabs, setTerminalTabs] = useState<ActiveTerminalTab[]>([]);
   const [broadcastEnabled, setBroadcastEnabled] = useState(false);
   const terminalRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -78,7 +126,9 @@ export function TerminalApp() {
   const [localDrives, setLocalDrives] = useState<string[]>([]);
   const [localPath, setLocalPath] = useState("");
   const [localFiles, setLocalFiles] = useState<LocalFileEntry[]>([]);
-  const [remoteFiles, setRemoteFiles] = useState<Array<{ name: string; isDirectory: boolean; size: number; permissions?: string }>>([]);
+  const [remoteFiles, setRemoteFiles] = useState<
+    Array<{ name: string; isDirectory: boolean; size: number; permissions?: string }>
+  >([]);
   const [selectedLocalFile, setSelectedLocalFile] = useState<string | null>(null);
   const [selectedRemoteFile, setSelectedRemoteFile] = useState<{ path: string; isDirectory: boolean } | null>(null);
 
@@ -103,14 +153,15 @@ export function TerminalApp() {
     keyId: "",
     folderId: null,
     group: "Default",
-    color: "#7b61ff"
+    osType: "ubuntu",
+    color: "#7b61ff",
   });
 
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [folderForm, setFolderForm] = useState<Partial<FolderItem>>({
     name: "",
     icon: "📁",
-    color: "#7b61ff"
+    color: "#3b82f6",
   });
 
   const [sshConfigModalOpen, setSshConfigModalOpen] = useState(false);
@@ -125,13 +176,13 @@ export function TerminalApp() {
     localPort: 8080,
     remoteHost: "127.0.0.1",
     remotePort: 80,
-    enabled: false
+    enabled: false,
   });
 
   const [keyModalOpen, setKeyModalOpen] = useState(false);
   const [keyForm, setKeyForm] = useState<{ label: string; keyType: "ed25519" | "rsa" }>({
     label: "My SSH Key",
-    keyType: "ed25519"
+    keyType: "ed25519",
   });
 
   const [snippetVarModalOpen, setSnippetVarModalOpen] = useState(false);
@@ -139,49 +190,75 @@ export function TerminalApp() {
   const [snippetVariables, setSnippetVariables] = useState<string[]>([]);
   const [snippetVarValues, setSnippetVarValues] = useState<Record<string, string>>({});
 
-  const [draggedHostId, setDraggedHostId] = useState<string | null>(null);
-
   // Fetch initial data
   const loadAllData = async () => {
     try {
       const [hRes, fRes, sRes, tRes, kRes, setRes, sysRes] = await Promise.all([
-        fetch("http://127.0.0.1:3980/api/hosts").then(r => r.json()),
-        fetch("http://127.0.0.1:3980/api/folders").then(r => r.json()),
-        fetch("http://127.0.0.1:3980/api/snippets").then(r => r.json()),
-        fetch("http://127.0.0.1:3980/api/tunnels").then(r => r.json()),
-        fetch("http://127.0.0.1:3980/api/keys").then(r => r.json()),
-        fetch("http://127.0.0.1:3980/api/settings").then(r => r.json()),
-        fetch("http://127.0.0.1:3980/api/system").then(r => r.json())
+        fetch("http://127.0.0.1:3980/api/hosts").then((r) => r.json()).catch(() => ({ success: false })),
+        fetch("http://127.0.0.1:3980/api/folders").then((r) => r.json()).catch(() => ({ success: false })),
+        fetch("http://127.0.0.1:3980/api/snippets").then((r) => r.json()).catch(() => ({ success: false })),
+        fetch("http://127.0.0.1:3980/api/tunnels").then((r) => r.json()).catch(() => ({ success: false })),
+        fetch("http://127.0.0.1:3980/api/keys").then((r) => r.json()).catch(() => ({ success: false })),
+        fetch("http://127.0.0.1:3980/api/settings").then((r) => r.json()).catch(() => ({ success: false })),
+        fetch("http://127.0.0.1:3980/api/system").then((r) => r.json()).catch(() => ({ success: false })),
       ]);
 
-      if (hRes.success) setHosts(hRes.hosts);
-      if (fRes.success) setFolders(fRes.folders);
-      if (sRes.success) setSnippets(sRes.snippets);
-      if (tRes.success) setTunnels(tRes.tunnels);
-      if (kRes.success) setKeys(kRes.keys);
-      if (setRes.success) setSettings(setRes.settings);
+      if (hRes.success && hRes.hosts && hRes.hosts.length > 0) {
+        setHosts(hRes.hosts);
+      } else {
+        setHosts(SEED_HOSTS);
+      }
+
+      if (fRes.success && fRes.folders && fRes.folders.length > 0) {
+        setFolders(fRes.folders);
+      } else {
+        setFolders(SEED_FOLDERS);
+      }
+
+      if (sRes.success) setSnippets(sRes.snippets || []);
+      if (tRes.success) setTunnels(tRes.tunnels || []);
+      if (kRes.success) setKeys(kRes.keys || []);
+      if (setRes.success) setSettings(setRes.settings || {});
       if (sysRes.success && sysRes.appVersion) setAppVersion(sysRes.appVersion);
     } catch (err) {
-      console.warn("API load warning:", err);
+      console.warn("API load warning, falling back to local seed:", err);
+      setHosts(SEED_HOSTS);
+      setFolders(SEED_FOLDERS);
     }
   };
 
   useEffect(() => {
     loadAllData();
     loadLocalFiles();
+
+    // Register top titlebar "+ New Tab" handler
+    setOnNewTabTrigger(() => {
+      const localHost: HostItem = {
+        id: "local_" + Date.now(),
+        label: "Local Shell",
+        type: "local",
+        shellType: "zsh",
+        osType: "macos",
+      };
+      connectHost(localHost);
+    });
   }, []);
 
   // Local filesystem explorer for SFTP
   const loadLocalFiles = async (dirPath?: string) => {
     try {
-      const drivesRes = await fetch("http://127.0.0.1:3980/api/local/drives").then(r => r.json());
+      const drivesRes = await fetch("http://127.0.0.1:3980/api/local/drives")
+        .then((r) => r.json())
+        .catch(() => ({ success: false }));
       if (drivesRes.success) setLocalDrives(drivesRes.drives || []);
 
       const listRes = await fetch("http://127.0.0.1:3980/api/local/list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: dirPath })
-      }).then(r => r.json());
+        body: JSON.stringify({ path: dirPath }),
+      })
+        .then((r) => r.json())
+        .catch(() => ({ success: false }));
 
       if (listRes.success) {
         setLocalPath(listRes.path);
@@ -195,32 +272,37 @@ export function TerminalApp() {
   // Connect to Host (Shell or SSH)
   const connectHost = (host: HostItem) => {
     const tabId = "tab_" + Date.now();
-    const newTab: ActiveTab = { id: tabId, host };
+    const newTab: ActiveTerminalTab = { id: tabId, host };
 
-    setTabs(prev => [...prev, newTab]);
-    setActiveTabId(tabId);
-    setActiveNav("terminals");
+    setTerminalTabs((prev) => [...prev, newTab]);
+    openTab({
+      id: tabId,
+      title: host.label,
+      type: "terminal",
+      host,
+    });
 
     setTimeout(() => {
       initXterm(newTab);
     }, 150);
   };
 
-  const initXterm = (tab: ActiveTab) => {
+  const initXterm = (tab: ActiveTerminalTab) => {
     const container = terminalRefs.current.get(tab.id);
     if (!container) return;
 
     container.innerHTML = "";
 
+    const isDark = document.documentElement.classList.contains("dark");
     const term = new Terminal({
       cursorBlink: true,
       fontFamily: settings.fontFamily || "Geist Mono, monospace",
       fontSize: settings.fontSize || 14,
       theme: {
-        background: "#0c0e14",
-        foreground: "#e2e8f0",
-        cursor: "#7b61ff"
-      }
+        background: isDark ? "#0c0e14" : "#ffffff",
+        foreground: isDark ? "#e2e8f0" : "#0f172a",
+        cursor: "#6366f1",
+      },
     });
 
     const fitAddon = new FitAddon();
@@ -233,12 +315,15 @@ export function TerminalApp() {
     const ws = new WebSocket("ws://127.0.0.1:3980");
 
     ws.onopen = () => {
-      ws.send(JSON.stringify({
-        type: "init",
-        hostId: tab.host.id,
-        cols: term.cols,
-        rows: term.rows
-      }));
+      ws.send(
+        JSON.stringify({
+          type: "init",
+          hostId: tab.host.id,
+          host: tab.host,
+          cols: term.cols,
+          rows: term.rows,
+        })
+      );
     };
 
     ws.onmessage = (event) => {
@@ -258,7 +343,7 @@ export function TerminalApp() {
 
     term.onData((data) => {
       if (broadcastEnabled) {
-        tabs.forEach(t => {
+        terminalTabs.forEach((t) => {
           if (t.ws && t.ws.readyState === WebSocket.OPEN) {
             t.ws.send(JSON.stringify({ type: "data", data }));
           }
@@ -275,75 +360,59 @@ export function TerminalApp() {
     tab.fitAddon = fitAddon;
   };
 
-  const closeTab = (tabId: string) => {
-    const tab = tabs.find(t => t.id === tabId);
+  const closeTerminalTab = (tabId: string) => {
+    const tab = terminalTabs.find((t) => t.id === tabId);
     if (tab) {
       tab.ws?.close();
       tab.term?.dispose();
     }
-    const remaining = tabs.filter(t => t.id !== tabId);
-    setTabs(remaining);
-    if (activeTabId === tabId) {
-      setActiveTabId(remaining.length > 0 ? remaining[remaining.length - 1].id : null);
-    }
+    setTerminalTabs((prev) => prev.filter((t) => t.id !== tabId));
+    closeContextTab(tabId);
   };
 
-  const saveTerminalLog = () => {
-    const activeTab = tabs.find(t => t.id === activeTabId);
-    if (!activeTab || !activeTab.term) return alert("Pilih tab terminal yang aktif.");
-    const buffer = activeTab.term.buffer.active;
-    let text = "";
-    for (let i = 0; i < buffer.length; i++) {
-      const line = buffer.getLine(i);
-      if (line) text += line.translateToString(true) + "\n";
-    }
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `erterm_${activeTab.host.label.replace(/\s+/g, "_")}_${Date.now()}.log`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const executeSnippet = (cmd: string) => {
-    const matches = [...cmd.matchAll(/\{\{([^}]+)\}\}/g)];
-    if (matches.length > 0) {
-      const vars = [...new Set(matches.map(m => m[1].trim()))];
-      setSnippetTemplateCmd(cmd);
-      setSnippetVariables(vars);
-      setSnippetVarValues({});
-      setSnippetVarModalOpen(true);
+  const handleQuickConnect = (query: string) => {
+    if (!query) return;
+    // Check if query matches an existing host
+    const match = hosts.find(
+      (h) =>
+        h.label.toLowerCase() === query.toLowerCase() ||
+        h.hostname?.toLowerCase() === query.toLowerCase()
+    );
+    if (match) {
+      connectHost(match);
+      setSearchHost("");
       return;
     }
 
-    sendCmdToActiveTerminal(cmd);
-  };
+    // Otherwise connect as raw user@hostname or hostname
+    let username = "root";
+    let hostname = query;
+    let port = 22;
 
-  const sendCmdToActiveTerminal = (cmd: string) => {
-    const activeTab = tabs.find(t => t.id === activeTabId);
-    if (!activeTab || !activeTab.ws || activeTab.ws.readyState !== WebSocket.OPEN) {
-      return alert("Buka atau pilih tab terminal terlebih dahulu.");
+    if (query.includes("@")) {
+      const parts = query.split("@");
+      username = parts[0];
+      hostname = parts[1];
     }
-    activeTab.ws.send(JSON.stringify({ type: "data", data: cmd + "\n" }));
-    setActiveNav("terminals");
-  };
-
-  // Drag and Drop
-  const moveHostToFolder = async (hostId: string, folderId: string | null) => {
-    try {
-      const res = await fetch(`http://127.0.0.1:3980/api/hosts/${hostId}/move`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folderId })
-      }).then(r => r.json());
-
-      if (res.success) {
-        setHosts(prev => prev.map(h => h.id === hostId ? { ...h, folderId } : h));
-      }
-    } catch (e) {
-      console.error("Move error:", e);
+    if (hostname.includes(":")) {
+      const parts = hostname.split(":");
+      hostname = parts[0];
+      port = parseInt(parts[1], 10) || 22;
     }
+
+    const tempHost: HostItem = {
+      id: "quick_" + Date.now(),
+      label: query,
+      type: "ssh",
+      hostname,
+      username,
+      port,
+      authType: "password",
+      osType: "ubuntu",
+    };
+
+    connectHost(tempHost);
+    setSearchHost("");
   };
 
   // SFTP Functions
@@ -352,15 +421,15 @@ export function TerminalApp() {
       const res = await fetch("http://127.0.0.1:3980/api/sftp/connect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ hostId })
-      }).then(r => r.json());
+        body: JSON.stringify({ hostId }),
+      }).then((r) => r.json());
 
       if (res.success) {
         setSftpSessionId(res.sessionId);
         setSftpCurrentPath(res.initialPath || "/");
         loadRemoteFiles(res.sessionId, res.initialPath || "/");
       } else {
-        alert("SFTP Gagal: " + res.error);
+        alert("SFTP Gagal: " + (res.error || "Gagal menghubungi server"));
       }
     } catch (e) {
       alert("SFTP Error: " + e);
@@ -372,8 +441,8 @@ export function TerminalApp() {
       const res = await fetch("http://127.0.0.1:3980/api/sftp/list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, path })
-      }).then(r => r.json());
+        body: JSON.stringify({ sessionId, path }),
+      }).then((r) => r.json());
 
       if (res.success) {
         setSftpCurrentPath(res.path);
@@ -384,1183 +453,860 @@ export function TerminalApp() {
     }
   };
 
-  const openRemoteFileEditor = async (filePath: string) => {
-    if (!sftpSessionId) return;
-    setEditorFilePath(filePath);
-    setEditorStatus("Memuat file...");
-    setEditorContent("");
-    setEditorOpen(true);
-
-    try {
-      const res = await fetch("http://127.0.0.1:3980/api/sftp/read-file", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: sftpSessionId, filePath })
-      }).then(r => r.json());
-
-      if (res.success) {
-        setEditorContent(res.content);
-        setEditorStatus("Siap diedit (Ctrl+S untuk simpan)");
-      } else {
-        setEditorStatus("Gagal memuat: " + res.error);
-      }
-    } catch (e) {
-      setEditorStatus("Error: " + e);
-    }
-  };
-
-  const saveRemoteFileEditor = async () => {
-    if (!sftpSessionId || !editorFilePath) return;
-    setEditorStatus("Menyimpan ke server...");
-    try {
-      const res = await fetch("http://127.0.0.1:3980/api/sftp/write-file", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: sftpSessionId, filePath: editorFilePath, content: editorContent })
-      }).then(r => r.json());
-
-      if (res.success) {
-        setEditorStatus("✓ Tersimpan di server remote!");
-      } else {
-        setEditorStatus("✗ Gagal: " + res.error);
-      }
-    } catch (e) {
-      setEditorStatus("✗ Error: " + e);
-    }
-  };
-
   // Filtered hosts
-  const filteredHosts = hosts.filter(h => {
-    const matchGroup = activeGroup === "All" || h.group === activeGroup;
-    const matchQuery = !searchHost ||
+  const filteredHosts = hosts.filter((h) => {
+    const matchGroup =
+      activeGroup === "All" ||
+      h.group === activeGroup ||
+      (folders.find((f) => f.name === activeGroup)?.id === h.folderId);
+    const matchQuery =
+      !searchHost ||
       h.label.toLowerCase().includes(searchHost.toLowerCase()) ||
-      (h.hostname && h.hostname.toLowerCase().includes(searchHost.toLowerCase()));
+      (h.hostname && h.hostname.toLowerCase().includes(searchHost.toLowerCase())) ||
+      (h.username && h.username.toLowerCase().includes(searchHost.toLowerCase()));
     return matchGroup && matchQuery;
   });
 
   return (
-    <div className="flex h-full w-full bg-[#0a0c10] text-[#e2e8f0] overflow-hidden select-none font-sans">
-      {/* Sidebar Navigation */}
-      <aside className="w-56 bg-[#10131a] border-r border-[#1e2330] flex flex-col justify-between flex-shrink-0">
-        <div>
-          {/* Sidebar Header - aligned with workspace toolbar (h-9) */}
-          <div className="h-9 px-3.5 flex items-center justify-between border-b border-[#1e2330] text-[11px] font-mono">
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-              Navigation
-            </span>
-            <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded">
-              v{appVersion}
-            </span>
-          </div>
+    <div className="flex h-full w-full bg-[#f0f2f6] dark:bg-[#0a0d18] text-slate-800 dark:text-slate-100 overflow-hidden select-none font-sans transition-colors duration-200">
+      {/* Sidebar Navigation - Termius Authentic Layout */}
+      <aside className="w-48 bg-[#f4f5f8] dark:bg-[#101420] border-r border-slate-200 dark:border-[#1e2330] flex flex-col justify-between flex-shrink-0 transition-colors duration-200">
+        <div className="p-2 space-y-1">
+          {/* Hosts Item */}
+          <button
+            onClick={() => {
+              setActiveTabId(null);
+              setActiveNav("hosts");
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeNav === "hosts" && activeTabId === null
+                ? "bg-white dark:bg-[#1a2133] text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/40"
+            }`}
+          >
+            <Layers size={17} className={activeNav === "hosts" ? "text-indigo-600 dark:text-indigo-400" : ""} />
+            <span>Hosts</span>
+          </button>
 
-          {/* Navigation Items */}
-          <nav className="p-2 space-y-1">
-            <button
-              onClick={() => setActiveNav("hosts")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeNav === "hosts"
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <Server size={17} />
-              <span>Saved Hosts</span>
-            </button>
+          {/* Keychain Item */}
+          <button
+            onClick={() => {
+              setActiveTabId(null);
+              setActiveNav("keychain");
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeNav === "keychain" && activeTabId === null
+                ? "bg-white dark:bg-[#1a2133] text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/40"
+            }`}
+          >
+            <KeyRound size={17} className={activeNav === "keychain" ? "text-indigo-600 dark:text-indigo-400" : ""} />
+            <span>Keychain</span>
+          </button>
 
-            <button
-              onClick={() => setActiveNav("terminals")}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeNav === "terminals"
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <TerminalIcon size={17} />
-                <span>Terminals</span>
-              </div>
-              {tabs.length > 0 && (
-                <span className="text-[10px] bg-indigo-500/30 text-indigo-300 font-mono px-1.5 py-0.5 rounded-full">
-                  {tabs.length}
-                </span>
-              )}
-            </button>
+          {/* Port Forwarding Item */}
+          <button
+            onClick={() => {
+              setActiveTabId(null);
+              setActiveNav("tunnels");
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeNav === "tunnels" && activeTabId === null
+                ? "bg-white dark:bg-[#1a2133] text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/40"
+            }`}
+          >
+            <Network size={17} className={activeNav === "tunnels" ? "text-indigo-600 dark:text-indigo-400" : ""} />
+            <span>Port Forwarding</span>
+          </button>
 
-            <button
-              onClick={() => setActiveNav("sftp")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeNav === "sftp"
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <FolderSync size={17} />
-              <span>SFTP Manager</span>
-            </button>
+          {/* Snippets Item */}
+          <button
+            onClick={() => {
+              setActiveTabId(null);
+              setActiveNav("snippets");
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeNav === "snippets" && activeTabId === null
+                ? "bg-white dark:bg-[#1a2133] text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/40"
+            }`}
+          >
+            <FileCode size={17} className={activeNav === "snippets" ? "text-indigo-600 dark:text-indigo-400" : ""} />
+            <span>Snippets</span>
+          </button>
 
-            <button
-              onClick={() => setActiveNav("tunnels")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeNav === "tunnels"
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <Network size={17} />
-              <span>Port Forwarding</span>
-            </button>
+          {/* Known Hosts Item */}
+          <button
+            onClick={() => {
+              setActiveTabId(null);
+              setActiveNav("known_hosts");
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeNav === "known_hosts" && activeTabId === null
+                ? "bg-white dark:bg-[#1a2133] text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/40"
+            }`}
+          >
+            <Globe size={17} className={activeNav === "known_hosts" ? "text-indigo-600 dark:text-indigo-400" : ""} />
+            <span>Known Hosts</span>
+          </button>
 
-            <button
-              onClick={() => setActiveNav("keys")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeNav === "keys"
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <KeyRound size={17} />
-              <span>SSH Key Vault</span>
-            </button>
-
-            <button
-              onClick={() => setActiveNav("snippets")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeNav === "snippets"
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <FileCode size={17} />
-              <span>Quick Snippets</span>
-            </button>
-
-            <button
-              onClick={() => setActiveNav("settings")}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeNav === "settings"
-                  ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <SettingsIcon size={17} />
-              <span>Settings</span>
-            </button>
-          </nav>
+          {/* Logs Item */}
+          <button
+            onClick={() => {
+              setActiveTabId(null);
+              setActiveNav("logs");
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeNav === "logs" && activeTabId === null
+                ? "bg-white dark:bg-[#1a2133] text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-700/50"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/40"
+            }`}
+          >
+            <Clock size={17} className={activeNav === "logs" ? "text-indigo-600 dark:text-indigo-400" : ""} />
+            <span>Logs</span>
+          </button>
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-3 border-t border-[#1e2330] text-[11px] text-slate-500 flex items-center justify-between font-mono">
+        <div className="p-3 border-t border-slate-200 dark:border-[#1e2330] flex items-center justify-between text-xs font-mono text-slate-500">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Core Active</span>
+            <span className="text-[11px] font-sans">Core Active</span>
           </div>
-          <span>:3980</span>
+          <span className="text-[10px] text-slate-400">:3980</span>
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Viewport */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Workspace Toolbar Bar */}
-        <div className="h-9 bg-[#0e1220]/70 border-b border-[#1c243e] px-4 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-            <span className="text-slate-500">Workspace</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-indigo-400 capitalize font-semibold">{activeNav}</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                alert(`ErTerm v${appVersion} sudah merupakan versi terbaru dengan arsitektur registry akun terpadu.`);
-              }}
-              className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-rose-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono hover:opacity-90 transition-opacity"
-            >
-              <span>🚀 Up to date</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Dynamic Views */}
-        <div className="flex-1 overflow-hidden relative">
-          {/* VIEW: HOSTS */}
-          {activeNav === "hosts" && (
-            <div className="h-full flex flex-col p-4 overflow-y-auto">
-              <div className="flex items-center justify-between pb-4 border-b border-[#1e2330]">
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">Saved Hosts</h2>
-                  <p className="text-xs text-slate-400">Kelola server SSH remote dan shell lokal dengan pengelompokan folder.</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={searchHost}
-                    onChange={(e) => setSearchHost(e.target.value)}
-                    placeholder="Search hosts..."
-                    className="bg-[#161a24] border border-[#272d3e] rounded-md px-2.5 py-1 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500 w-44"
-                  />
-
-                  <button
-                    onClick={() => {
-                      setSshConfigPath("");
-                      setSshConfigResult(null);
-                      setSshConfigModalOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161a24] hover:bg-[#202534] border border-[#272d3e] text-xs font-medium text-slate-300"
-                  >
-                    <Download size={14} />
-                    <span>Import ~/.ssh/config</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setFolderForm({ name: "", icon: "📁", color: "#7b61ff" });
-                      setFolderModalOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#161a24] hover:bg-[#202534] border border-[#272d3e] text-xs font-medium text-slate-300"
-                  >
-                    <FolderPlus size={14} />
-                    <span>+ Folder</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setHostForm({
-                        label: "",
-                        type: "ssh",
-                        hostname: "",
-                        port: 22,
-                        username: "",
-                        authType: "password",
-                        password: "",
-                        folderId: null,
-                        color: "#7b61ff"
-                      });
-                      setHostModalOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white shadow-sm shadow-indigo-600/30"
-                  >
-                    <Plus size={14} />
-                    <span>Add Host</span>
-                  </button>
-                </div>
+        {/* If an active terminal or SFTP tab is selected, render it full screen */}
+        {activeTabId === "sftp_tab" ? (
+          <div className="h-full flex flex-col p-4 overflow-hidden bg-white dark:bg-[#0c0e14]">
+            {/* SFTP View */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#1e2330] flex-shrink-0">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight">
+                  Dual-Pane SFTP Manager
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Transfer stream berkas lokal ⇄ remote dan in-app text editor.
+                </p>
               </div>
 
-              {/* Root Drop Zone */}
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const hostId = e.dataTransfer.getData("text/plain") || draggedHostId;
-                  if (hostId) moveHostToFolder(hostId, null);
-                }}
-                className="my-3 p-3 border border-dashed border-[#272d3e] rounded-lg text-center text-xs text-slate-500 hover:border-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/5 transition-all"
-              >
-                📥 Drag host ke sini untuk mengeluarkan dari folder (Unassigned Root)
-              </div>
-
-              {/* Folders Shelf */}
-              {folders.map(folder => {
-                const folderHosts = filteredHosts.filter(h => h.folderId === folder.id);
-                return (
-                  <div
-                    key={folder.id}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const hostId = e.dataTransfer.getData("text/plain") || draggedHostId;
-                      if (hostId) moveHostToFolder(hostId, folder.id);
-                    }}
-                    className="mb-4 bg-[#121620] border border-[#1e2330] rounded-xl overflow-hidden hover:border-slate-700 transition-colors"
-                  >
-                    {/* Folder Header */}
-                    <div className="p-3 bg-[#151a26]/60 flex items-center justify-between border-b border-[#1e2330]">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">{folder.icon || "📁"}</span>
-                        <span className="font-bold text-sm text-white" style={{ color: folder.color || undefined }}>
-                          {folder.name}
-                        </span>
-                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
-                          {folderHosts.length} hosts
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => {
-                            setFolderForm(folder);
-                            setFolderModalOpen(true);
-                          }}
-                          className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800"
-                        >
-                          <Edit3 size={13} />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (confirm(`Hapus folder ${folder.name}? Host di dalamnya akan dipindah ke root.`)) {
-                              await fetch(`http://127.0.0.1:3980/api/folders/${folder.id}`, { method: "DELETE" });
-                              loadAllData();
-                            }
-                          }}
-                          className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Folder Content Cards */}
-                    <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 min-h-[70px]">
-                      {folderHosts.length === 0 ? (
-                        <div className="col-span-full py-4 text-center text-xs text-slate-600 border border-dashed border-slate-800/80 rounded-lg">
-                          Drag host ke sini untuk mengelompokkan ke folder "{folder.name}"
-                        </div>
-                      ) : (
-                        folderHosts.map(h => (
-                          <div
-                            key={h.id}
-                            draggable
-                            onDragStart={(e) => {
-                              e.dataTransfer.setData("text/plain", h.id);
-                              setDraggedHostId(h.id);
-                            }}
-                            className="bg-[#161a24] border border-[#23293a] rounded-lg p-3 flex flex-col justify-between hover:border-indigo-500/50 transition-all cursor-grab active:cursor-grabbing relative overflow-hidden"
-                          >
-                            <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: h.color || "#7b61ff" }} />
-                            <div>
-                              <div className="font-semibold text-sm text-white">{h.label}</div>
-                              <div className="text-xs text-slate-400 font-mono mt-0.5">
-                                {h.type === "ssh" ? `${h.username}@${h.hostname}:${h.port || 22}` : `Local Shell (${h.shellType || "powershell"})`}
-                              </div>
-                            </div>
-                            <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
-                              <button
-                                onClick={() => connectHost(h)}
-                                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-600/30 text-indigo-400 hover:bg-indigo-600 hover:text-white text-xs font-medium transition-colors"
-                              >
-                                <Play size={12} />
-                                <span>Connect</span>
-                              </button>
-                              <div className="flex items-center gap-1">
-                                {h.type === "ssh" && (
-                                  <button
-                                    onClick={() => {
-                                      setSftpSelectedHost(h.id);
-                                      connectSftp(h.id);
-                                      setActiveNav("sftp");
-                                    }}
-                                    className="p-1 text-slate-400 hover:text-white"
-                                    title="Open SFTP"
-                                  >
-                                    <FolderSync size={13} />
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    setHostForm(h);
-                                    setHostModalOpen(true);
-                                  }}
-                                  className="p-1 text-slate-400 hover:text-white"
-                                >
-                                  <Edit3 size={13} />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Root (Unassigned) Hosts */}
-              <div className="mt-2">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 font-mono">
-                  Root Servers ({filteredHosts.filter(h => !h.folderId || !folders.some(f => f.id === h.folderId)).length})
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {filteredHosts
-                    .filter(h => !h.folderId || !folders.some(f => f.id === h.folderId))
-                    .map(h => (
-                      <div
-                        key={h.id}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData("text/plain", h.id);
-                          setDraggedHostId(h.id);
-                        }}
-                        className="bg-[#121620] border border-[#1e2330] rounded-lg p-3 flex flex-col justify-between hover:border-indigo-500/50 transition-all cursor-grab active:cursor-grabbing relative overflow-hidden"
-                      >
-                        <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: h.color || "#7b61ff" }} />
-                        <div>
-                          <div className="font-semibold text-sm text-white">{h.label}</div>
-                          <div className="text-xs text-slate-400 font-mono mt-0.5">
-                            {h.type === "ssh" ? `${h.username}@${h.hostname}:${h.port || 22}` : `Local Shell (${h.shellType || "powershell"})`}
-                          </div>
-                        </div>
-                        <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
-                          <button
-                            onClick={() => connectHost(h)}
-                            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-indigo-600/30 text-indigo-400 hover:bg-indigo-600 hover:text-white text-xs font-medium transition-colors"
-                          >
-                            <Play size={12} />
-                            <span>Connect</span>
-                          </button>
-                          <div className="flex items-center gap-1">
-                            {h.type === "ssh" && (
-                              <button
-                                onClick={() => {
-                                  setSftpSelectedHost(h.id);
-                                  connectSftp(h.id);
-                                  setActiveNav("sftp");
-                                }}
-                                className="p-1 text-slate-400 hover:text-white"
-                                title="Open SFTP"
-                              >
-                                <FolderSync size={13} />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                setHostForm(h);
-                                setHostModalOpen(true);
-                              }}
-                              className="p-1 text-slate-400 hover:text-white"
-                            >
-                              <Edit3 size={13} />
-                            </button>
-                            <button
-                              onClick={async () => {
-                                if (confirm(`Hapus host ${h.label}?`)) {
-                                  await fetch(`http://127.0.0.1:3980/api/hosts/${h.id}`, { method: "DELETE" });
-                                  loadAllData();
-                                }
-                              }}
-                              className="p-1 text-slate-400 hover:text-rose-400"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={sftpSelectedHost}
+                  onChange={(e) => setSftpSelectedHost(e.target.value)}
+                  className="bg-slate-100 dark:bg-[#161a24] border border-slate-300 dark:border-[#272d3e] rounded-lg px-2.5 py-1 text-xs text-slate-800 dark:text-white outline-none"
+                >
+                  <option value="">Pilih Host Remote...</option>
+                  {hosts
+                    .filter((h) => h.type === "ssh")
+                    .map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {h.label} ({h.hostname})
+                      </option>
                     ))}
-                </div>
+                </select>
+
+                <button
+                  onClick={() => {
+                    if (sftpSelectedHost) connectSftp(sftpSelectedHost);
+                  }}
+                  className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-500"
+                >
+                  Hubungkan
+                </button>
               </div>
             </div>
-          )}
 
-          {/* VIEW: TERMINALS */}
-          {activeNav === "terminals" && (
-            <div className="h-full flex flex-col overflow-hidden bg-[#0c0e14]">
-              {/* Tab Bar */}
-              <div className="h-10 bg-[#121620] border-b border-[#1e2330] flex items-center justify-between px-2 flex-shrink-0">
-                <div className="flex items-center gap-1 overflow-x-auto">
-                  {tabs.map(tab => (
+            {/* Dual Panes */}
+            <div className="flex-1 grid grid-cols-2 gap-3 mt-3 overflow-hidden">
+              {/* Left: Local */}
+              <div className="flex flex-col bg-slate-50 dark:bg-[#121620] border border-slate-200 dark:border-[#1e2330] rounded-xl overflow-hidden">
+                <div className="p-2 bg-slate-100 dark:bg-[#161a26] border-b border-slate-200 dark:border-[#1e2330] flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-700 dark:text-slate-300 font-bold truncate">
+                    💻 Lokal: {localPath || "/"}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const parent = localPath.split(/[\\/]/).slice(0, -1).join("/") || "/";
+                      loadLocalFiles(parent);
+                    }}
+                    className="px-2 py-0.5 bg-slate-200 dark:bg-slate-800 rounded hover:bg-slate-300 dark:hover:bg-slate-700"
+                  >
+                    ▲ Up
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-200 dark:divide-slate-800/40 text-xs font-mono">
+                  {localFiles.map((file) => (
                     <div
-                      key={tab.id}
-                      onClick={() => setActiveTabId(tab.id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-t-md text-xs font-mono cursor-pointer transition-colors border-b-2 ${
-                        activeTabId === tab.id
-                          ? "bg-[#0c0e14] text-white border-indigo-500 font-bold"
-                          : "text-slate-400 hover:bg-slate-800/40 border-transparent"
+                      key={file.name}
+                      onClick={() => {
+                        if (file.isDirectory) loadLocalFiles(localPath + "/" + file.name);
+                        else setSelectedLocalFile(localPath + "/" + file.name);
+                      }}
+                      className={`p-1.5 flex items-center justify-between rounded hover:bg-indigo-50 dark:hover:bg-indigo-950/20 cursor-pointer ${
+                        selectedLocalFile === localPath + "/" + file.name
+                          ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
+                          : ""
                       }`}
                     >
-                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tab.host.color || "#7b61ff" }} />
-                      <span>{tab.host.label}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          closeTab(tab.id);
-                        }}
-                        className="text-slate-500 hover:text-white p-0.5 rounded"
-                      >
-                        <X size={12} />
-                      </button>
+                      <div className="flex items-center gap-2 truncate">
+                        <span>{file.isDirectory ? "📁" : "📄"}</span>
+                        <span className="truncate">{file.name}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400">
+                        {file.isDirectory ? "DIR" : `${Math.round(file.size / 1024)} KB`}
+                      </span>
                     </div>
                   ))}
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setBroadcastEnabled(!broadcastEnabled)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono transition-colors ${
-                      broadcastEnabled
-                        ? "bg-rose-500/20 text-rose-400 border border-rose-500/40 font-bold animate-pulse"
-                        : "bg-slate-800/60 text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    <Radio size={13} />
-                    <span>{broadcastEnabled ? "Broadcast ON" : "Broadcast OFF"}</span>
-                  </button>
-
-                  <button
-                    onClick={saveTerminalLog}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800/60 text-slate-400 hover:text-white text-xs font-mono"
-                    title="Download active terminal log"
-                  >
-                    <FileText size={13} />
-                    <span>Save Log</span>
-                  </button>
-                </div>
               </div>
 
-              {/* Terminal Viewports Container */}
-              <div className="flex-1 relative overflow-hidden bg-[#0c0e14]">
-                {tabs.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs gap-2">
-                    <TerminalIcon size={40} className="text-slate-700" />
-                    <p>Belum ada sesi terminal aktif. Buka host dari menu Saved Hosts.</p>
-                  </div>
-                ) : (
-                  tabs.map(tab => (
-                    <div
-                      key={tab.id}
-                      ref={el => {
-                        if (el) terminalRefs.current.set(tab.id, el);
-                        else terminalRefs.current.delete(tab.id);
-                      }}
-                      className={`absolute inset-0 p-2 ${activeTabId === tab.id ? "block" : "hidden"}`}
-                    />
-                  ))
-                )}
-              </div>
-
-              {/* Bottom Quick Commands Bar */}
-              <div className="h-9 bg-[#121620] border-t border-[#1e2330] px-3 flex items-center gap-2 overflow-x-auto flex-shrink-0">
-                <span className="text-[11px] font-mono text-slate-500 whitespace-nowrap">Snippets:</span>
-                {snippets.map(s => (
-                  <button
-                    key={s.id}
-                    onClick={() => executeSnippet(s.command)}
-                    className="px-2 py-0.5 rounded bg-slate-800/80 hover:bg-indigo-600 hover:text-white text-[11px] font-mono text-slate-300 transition-colors whitespace-nowrap"
-                  >
-                    {s.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* VIEW: SFTP */}
-          {activeNav === "sftp" && (
-            <div className="h-full flex flex-col p-4 overflow-hidden">
-              <div className="flex items-center justify-between pb-3 border-b border-[#1e2330] flex-shrink-0">
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">Dual-Pane SFTP Manager</h2>
-                  <p className="text-xs text-slate-400">Transfer stream berkas lokal ⇄ remote dan in-app text editor.</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <select
-                    value={sftpSelectedHost}
-                    onChange={(e) => setSftpSelectedHost(e.target.value)}
-                    className="bg-[#161a24] border border-[#272d3e] rounded-md px-2.5 py-1 text-xs text-white outline-none"
-                  >
-                    <option value="">Pilih Host Remote...</option>
-                    {hosts.filter(h => h.type === "ssh").map(h => (
-                      <option key={h.id} value={h.id}>{h.label} ({h.hostname})</option>
-                    ))}
-                  </select>
-
+              {/* Right: Remote */}
+              <div className="flex flex-col bg-slate-50 dark:bg-[#121620] border border-slate-200 dark:border-[#1e2330] rounded-xl overflow-hidden">
+                <div className="p-2 bg-slate-100 dark:bg-[#161a26] border-b border-slate-200 dark:border-[#1e2330] flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-700 dark:text-slate-300 font-bold truncate">
+                    🌐 Remote: {sftpCurrentPath}
+                  </span>
                   <button
                     onClick={() => {
-                      if (sftpSelectedHost) connectSftp(sftpSelectedHost);
+                      if (!sftpSessionId) return;
+                      const parent = sftpCurrentPath.split("/").slice(0, -1).join("/") || "/";
+                      loadRemoteFiles(sftpSessionId, parent);
                     }}
-                    className="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-medium hover:bg-indigo-500"
+                    className="px-2 py-0.5 bg-slate-200 dark:bg-slate-800 rounded hover:bg-slate-300 dark:hover:bg-slate-700"
                   >
-                    Hubungkan
+                    ▲ Up
                   </button>
                 </div>
-              </div>
-
-              {/* Dual Panes */}
-              <div className="flex-1 grid grid-cols-2 gap-3 mt-3 overflow-hidden">
-                {/* Left: Local Pane */}
-                <div className="flex flex-col bg-[#121620] border border-[#1e2330] rounded-xl overflow-hidden">
-                  <div className="p-2 bg-[#161a26] border-b border-[#1e2330] flex items-center justify-between text-xs font-mono">
-                    <span className="text-slate-300 font-bold">💻 Lokal: {localPath}</span>
-                    <button
-                      onClick={() => {
-                        const parent = localPath.split(/[\\/]/).slice(0, -1).join("/") || "/";
-                        loadLocalFiles(parent);
-                      }}
-                      className="px-2 py-0.5 bg-slate-800 rounded hover:bg-slate-700"
-                    >
-                      ▲ Up
-                    </button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-800/40 text-xs font-mono">
-                    {localFiles.map(f => (
+                <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-200 dark:divide-slate-800/40 text-xs font-mono">
+                  {remoteFiles.length === 0 ? (
+                    <div className="py-8 text-center text-slate-400 text-xs">
+                      {sftpSessionId ? "Folder kosong atau sedang memuat..." : "Pilih host dan klik Hubungkan"}
+                    </div>
+                  ) : (
+                    remoteFiles.map((file) => (
                       <div
-                        key={f.name}
+                        key={file.name}
                         onClick={() => {
-                          if (f.isDirectory) loadLocalFiles(f.fullPath);
-                          else setSelectedLocalFile(f.fullPath);
-                        }}
-                        className={`p-1.5 flex items-center justify-between rounded cursor-pointer ${
-                          selectedLocalFile === f.fullPath ? "bg-indigo-600/20 text-indigo-300" : "hover:bg-slate-800/40"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <span>{f.isDirectory ? "📁" : "📄"}</span>
-                          <span className="truncate">{f.name}</span>
-                        </div>
-                        <span className="text-slate-500 text-[11px]">{f.isDirectory ? "--" : `${Math.round(f.size / 1024)} KB`}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Right: Remote Pane */}
-                <div className="flex flex-col bg-[#121620] border border-[#1e2330] rounded-xl overflow-hidden">
-                  <div className="p-2 bg-[#161a26] border-b border-[#1e2330] flex items-center justify-between text-xs font-mono">
-                    <span className="text-slate-300 font-bold">🌐 Remote: {sftpCurrentPath}</span>
-                    <button
-                      onClick={() => {
-                        if (!sftpSessionId) return;
-                        const parent = sftpCurrentPath.split("/").slice(0, -1).join("/") || "/";
-                        loadRemoteFiles(sftpSessionId, parent);
-                      }}
-                      className="px-2 py-0.5 bg-slate-800 rounded hover:bg-slate-700"
-                    >
-                      ▲ Up
-                    </button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-800/40 text-xs font-mono">
-                    {!sftpSessionId ? (
-                      <div className="h-full flex items-center justify-center text-slate-500">
-                        Pilih host dan klik Hubungkan untuk membuka server.
-                      </div>
-                    ) : (
-                      remoteFiles.map(f => {
-                        const fullPath = sftpCurrentPath.replace(/\/+$/, "") + "/" + f.name;
-                        return (
-                          <div
-                            key={f.name}
-                            onClick={() => {
-                              if (f.isDirectory) loadRemoteFiles(sftpSessionId, fullPath);
-                              else setSelectedRemoteFile({ path: fullPath, isDirectory: false });
-                            }}
-                            className={`p-1.5 flex items-center justify-between rounded cursor-pointer ${
-                              selectedRemoteFile?.path === fullPath ? "bg-indigo-600/20 text-indigo-300" : "hover:bg-slate-800/40"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 truncate">
-                              <span>{f.isDirectory ? "📁" : "📄"}</span>
-                              <span className="truncate">{f.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {!f.isDirectory && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openRemoteFileEditor(fullPath);
-                                  }}
-                                  className="px-2 py-0.5 bg-slate-800 hover:bg-indigo-600 rounded text-[10px]"
-                                >
-                                  Edit
-                                </button>
-                              )}
-                              <span className="text-slate-500 text-[11px]">{f.isDirectory ? "--" : `${Math.round(f.size / 1024)} KB`}</span>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* VIEW: TUNNELS */}
-          {activeNav === "tunnels" && (
-            <div className="h-full flex flex-col p-4 overflow-y-auto">
-              <div className="flex items-center justify-between pb-3 border-b border-[#1e2330]">
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">Port Forwarding & Tunnels</h2>
-                  <p className="text-xs text-slate-400">Pengalihan port aktif lokal, remote, dan SOCKS5 proxy via SSH gateway.</p>
-                </div>
-                <button
-                  onClick={() => setTunnelModalOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-indigo-600 text-xs font-medium text-white hover:bg-indigo-500"
-                >
-                  <Plus size={14} />
-                  <span>New Tunnel</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-                {tunnels.map(t => (
-                  <div key={t.id} className="p-3.5 bg-[#121620] border border-[#1e2330] rounded-xl flex flex-col justify-between">
-                    <div className="flex items-center justify-between">
-                      <div className="font-semibold text-sm text-white">{t.label}</div>
-                      <button
-                        onClick={async () => {
-                          const res = await fetch(`http://127.0.0.1:3980/api/tunnels/${t.id}/toggle`, { method: "POST" }).then(r => r.json());
-                          if (res.success) loadAllData();
-                        }}
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-mono font-bold transition-colors ${
-                          t.enabled ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40" : "bg-slate-800 text-slate-500"
-                        }`}
-                      >
-                        {t.enabled ? "● Active" : "○ Off"}
-                      </button>
-                    </div>
-
-                    <div className="my-3 py-2 px-3 bg-[#161a26] rounded border border-slate-800/80 font-mono text-xs text-slate-300 flex items-center justify-between">
-                      <span>:{t.localPort}</span>
-                      <span className="text-indigo-400 font-bold">➔ {t.tunnelType.toUpperCase()} ➔</span>
-                      <span>{t.remoteHost}:{t.remotePort}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-800/60">
-                      <span>Status: {t.status === "active" ? "● Listening" : t.status === "error" ? "⚠️ Error" : "○ Inactive"}</span>
-                      <button
-                        onClick={async () => {
-                          if (confirm(`Hapus tunnel ${t.label}?`)) {
-                            await fetch(`http://127.0.0.1:3980/api/tunnels/${t.id}`, { method: "DELETE" });
-                            loadAllData();
+                          if (file.isDirectory && sftpSessionId) {
+                            loadRemoteFiles(sftpSessionId, sftpCurrentPath.replace(/\/$/, "") + "/" + file.name);
+                          } else {
+                            setSelectedRemoteFile({
+                              path: sftpCurrentPath.replace(/\/$/, "") + "/" + file.name,
+                              isDirectory: file.isDirectory,
+                            });
                           }
                         }}
-                        className="text-slate-500 hover:text-rose-400 p-1"
+                        className="p-1.5 flex items-center justify-between rounded hover:bg-indigo-50 dark:hover:bg-indigo-950/20 cursor-pointer"
                       >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* VIEW: KEYS */}
-          {activeNav === "keys" && (
-            <div className="h-full flex flex-col p-4 overflow-y-auto">
-              <div className="flex items-center justify-between pb-3 border-b border-[#1e2330]">
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">Cryptographic SSH Key Vault</h2>
-                  <p className="text-xs text-slate-400">Penyimpanan kunci kriptografi mandiri (Ed25519 & RSA) untuk autentikasi aman.</p>
-                </div>
-                <button
-                  onClick={() => setKeyModalOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-indigo-600 text-xs font-medium text-white hover:bg-indigo-500"
-                >
-                  <Plus size={14} />
-                  <span>Generate Key</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                {keys.map(k => (
-                  <div key={k.id} className="p-4 bg-[#121620] border border-[#1e2330] rounded-xl flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <div className="font-bold text-sm text-white">{k.label}</div>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-300 uppercase">
-                          {k.keyType}
+                        <div className="flex items-center gap-2 truncate">
+                          <span>{file.isDirectory ? "📁" : "📄"}</span>
+                          <span className="truncate">{file.name}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400">
+                          {file.isDirectory ? "DIR" : `${Math.round(file.size / 1024)} KB`}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 font-mono mt-1 truncate">ID: {k.id}</p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(k.publicKey);
-                          alert("Public key copied to clipboard!");
-                        }}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300"
-                      >
-                        <Copy size={13} />
-                        <span>Copy Public Key</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* VIEW: SNIPPETS */}
-          {activeNav === "snippets" && (
-            <div className="h-full flex flex-col p-4 overflow-y-auto">
-              <div className="flex items-center justify-between pb-3 border-b border-[#1e2330]">
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">Command Snippets</h2>
-                  <p className="text-xs text-slate-400">Perintah cepat dan template variabel untuk eksekusi ke sesi terminal aktif.</p>
+                    ))
+                  )}
                 </div>
-                <button
-                  onClick={async () => {
-                    const title = prompt("Nama Snippet:");
-                    const command = prompt("Perintah (gunakan {{var}} untuk parameter):");
-                    if (title && command) {
-                      await fetch("http://127.0.0.1:3980/api/snippets", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ title, command })
-                      });
-                      loadAllData();
-                    }
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-indigo-600 text-xs font-medium text-white hover:bg-indigo-500"
-                >
-                  <Plus size={14} />
-                  <span>New Snippet</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-                {snippets.map(s => (
-                  <div key={s.id} className="p-3.5 bg-[#121620] border border-[#1e2330] rounded-xl flex flex-col justify-between">
-                    <div>
-                      <div className="font-semibold text-sm text-white">{s.title}</div>
-                      <code className="text-xs text-indigo-300 font-mono block mt-1 bg-[#161a26] p-2 rounded border border-slate-800 truncate">
-                        {s.command}
-                      </code>
-                    </div>
-
-                    <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
-                      <button
-                        onClick={() => executeSnippet(s.command)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-600/30 text-indigo-400 hover:bg-indigo-600 hover:text-white text-xs font-medium"
-                      >
-                        <Play size={12} />
-                        <span>Run</span>
-                      </button>
-                      <button
-                        onClick={async () => {
-                          await fetch(`http://127.0.0.1:3980/api/snippets/${s.id}`, { method: "DELETE" });
-                          loadAllData();
-                        }}
-                        className="p-1 text-slate-500 hover:text-rose-400"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* VIEW: SETTINGS */}
-          {activeNav === "settings" && (
-            <div className="h-full flex flex-col p-4 max-w-3xl overflow-y-auto">
-              <div className="pb-3 border-b border-[#1e2330]">
-                <h2 className="text-lg font-bold text-white tracking-tight">ErTerm Settings</h2>
-                <p className="text-xs text-slate-400">Konfigurasi tema, font terminal, dan sinkronisasi cloud.</p>
-              </div>
-
-              <div className="space-y-4 mt-4">
-                <div className="p-4 bg-[#121620] border border-[#1e2330] rounded-xl">
-                  <h3 className="font-semibold text-sm text-white mb-1">About ErTerm Desktop</h3>
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mt-2">
-                    <span>Versi Terpasang:</span>
-                    <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                      v{appVersion}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mt-2">
-                    <span>Arsitektur Storage:</span>
-                    <span className="text-slate-300">Unified Account Registry (registry-accountId.json)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs font-mono text-slate-400 mt-2">
-                    <span>UI Framework:</span>
-                    <span className="text-slate-300">React 19 + Vite + Tailwind CSS + shadcn/ui</span>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-[#121620] border border-[#1e2330] rounded-xl space-y-3">
-                  <h3 className="font-semibold text-sm text-white">Cloud Sync (Neon PostgreSQL)</h3>
-                  <div>
-                    <label className="text-xs text-slate-400 block mb-1">Cloud Backend API URL</label>
-                    <input
-                      type="text"
-                      value={settings.cloudApiUrl || "https://www.er-service.duckdns.org"}
-                      onChange={(e) => setSettings({ ...settings, cloudApiUrl: e.target.value })}
-                      className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-400 block mb-1">User Sync Key / Token</label>
-                    <input
-                      type="text"
-                      value={settings.cloudSyncKey || ""}
-                      onChange={(e) => setSettings({ ...settings, cloudSyncKey: e.target.value })}
-                      placeholder="robyfull.dev@gmail.com"
-                      className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-xs text-white"
-                    />
-                  </div>
-                  <div className="pt-2 flex items-center gap-2">
-                    <button
-                      onClick={async () => {
-                        await fetch("http://127.0.0.1:3980/api/settings", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(settings)
-                        });
-                        alert("Settings saved!");
-                      }}
-                      className="px-3 py-1.5 bg-indigo-600 text-white rounded text-xs font-medium"
-                    >
-                      Save Settings
-                    </button>
-                    <button
-                      onClick={async () => {
-                        const res = await fetch("http://127.0.0.1:3980/api/cloud/push", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            cloudApiUrl: settings.cloudApiUrl || "https://www.er-service.duckdns.org",
-                            syncKey: settings.cloudSyncKey || "robyfull.dev@gmail.com"
-                          })
-                        }).then(r => r.json());
-                        alert(res.success ? "Sync Sukses!" : "Sync Gagal: " + res.error);
-                      }}
-                      className="px-3 py-1.5 bg-slate-800 text-slate-300 hover:text-white rounded text-xs font-medium"
-                    >
-                      Push to Cloud
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Modal: In-App SFTP Editor */}
-      {editorOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl bg-[#10131a] border border-[#1e2330] rounded-xl flex flex-col h-[80vh] overflow-hidden shadow-2xl">
-            <div className="p-3 bg-[#161a26] border-b border-[#1e2330] flex items-center justify-between font-mono text-xs">
-              <div className="flex items-center gap-2">
-                <span>📝</span>
-                <span className="font-bold text-white">{editorFilePath}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-slate-400">{editorStatus}</span>
-                <button onClick={() => setEditorOpen(false)} className="text-slate-400 hover:text-white">
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
-            <textarea
-              value={editorContent}
-              onChange={(e) => setEditorContent(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-                  e.preventDefault();
-                  saveRemoteFileEditor();
-                }
-              }}
-              className="flex-1 bg-[#0c0e14] text-slate-200 p-4 font-mono text-xs outline-none resize-none leading-relaxed"
-            />
-            <div className="p-3 bg-[#121620] border-t border-[#1e2330] flex items-center justify-between text-xs">
-              <span className="text-slate-500 font-mono">Shortcut: Ctrl+S untuk menyimpan ke server</span>
-              <div className="flex items-center gap-2">
-                <button onClick={() => setEditorOpen(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">
-                  Tutup
-                </button>
-                <button onClick={saveRemoteFileEditor} className="px-3 py-1.5 rounded bg-indigo-600 text-white font-medium">
-                  Simpan File
-                </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        ) : activeTabId !== null ? (
+          /* Terminal View */
+          <div className="h-full flex flex-col overflow-hidden bg-white dark:bg-[#0c0e14]">
+            {/* Terminal Actions Bar */}
+            <div className="h-9 bg-slate-100 dark:bg-[#121620] border-b border-slate-200 dark:border-[#1e2330] px-3 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2 text-xs font-mono text-slate-500">
+                <TerminalIcon size={13} className="text-indigo-500" />
+                <span>Active Session:</span>
+                <span className="text-slate-800 dark:text-white font-bold">
+                  {terminalTabs.find((t) => t.id === activeTabId)?.host.label || "Terminal"}
+                </span>
+              </div>
 
-      {/* Modal: Host Form */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setBroadcastEnabled(!broadcastEnabled)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-mono transition-colors ${
+                    broadcastEnabled
+                      ? "bg-rose-500/20 text-rose-500 border border-rose-500/40 font-bold animate-pulse"
+                      : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-white"
+                  }`}
+                >
+                  <Radio size={12} />
+                  <span>{broadcastEnabled ? "Broadcast ON" : "Broadcast OFF"}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const tab = terminalTabs.find((t) => t.id === activeTabId);
+                    if (tab && tab.fitAddon) tab.fitAddon.fit();
+                  }}
+                  className="p-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                  title="Fit Terminal Size"
+                >
+                  <RefreshCw size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Terminal Containers */}
+            <div className="flex-1 relative overflow-hidden bg-white dark:bg-[#0c0e14]">
+              {terminalTabs.map((tab) => (
+                <div
+                  key={tab.id}
+                  ref={(el) => {
+                    if (el) terminalRefs.current.set(tab.id, el);
+                    else terminalRefs.current.delete(tab.id);
+                  }}
+                  className={`absolute inset-0 p-2.5 ${activeTabId === tab.id ? "block" : "hidden"}`}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          /* Dashboard Main Overview (Hosts / Termius Layout) */
+          <div className="h-full flex flex-col overflow-y-auto">
+            {activeNav === "hosts" && (
+              <>
+                {/* Omni-Search & Sub-Action Bar matching the screenshot */}
+                <div className="p-4 pb-2 space-y-3">
+                  {/* Omni-Search Bar */}
+                  <div className="relative flex items-center w-full bg-white dark:bg-[#131826] border border-slate-200/90 dark:border-[#21293f] rounded-xl shadow-xs focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/15 transition-all p-1">
+                    <input
+                      type="text"
+                      value={searchHost}
+                      onChange={(e) => setSearchHost(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && searchHost.trim()) {
+                          handleQuickConnect(searchHost.trim());
+                        }
+                      }}
+                      placeholder="Find a host or ssh user@hostname..."
+                      className="flex-1 bg-transparent px-3 py-1.5 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none"
+                    />
+                    <button
+                      onClick={() => handleQuickConnect(searchHost.trim())}
+                      disabled={!searchHost.trim()}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:bg-indigo-600 hover:text-white disabled:opacity-40 disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800 transition-colors mr-1"
+                    >
+                      Connect
+                    </button>
+                  </div>
+
+                  {/* Sub-Action Row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {/* Split Button: + New host ∨ */}
+                      <div className="relative flex items-center rounded-xl bg-slate-200/80 dark:bg-slate-800 text-slate-800 dark:text-white text-xs font-medium border border-slate-300/60 dark:border-slate-700/60 shadow-2xs">
+                        <button
+                          onClick={() => {
+                            setHostForm({
+                              label: "",
+                              type: "ssh",
+                              hostname: "",
+                              port: 22,
+                              username: "",
+                              authType: "password",
+                              password: "",
+                              folderId: null,
+                              osType: "ubuntu",
+                            });
+                            setHostModalOpen(true);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-slate-300/60 dark:hover:bg-slate-700 transition-colors rounded-l-xl"
+                        >
+                          <Plus size={14} />
+                          <span>New host</span>
+                        </button>
+                        <div className="h-4 w-px bg-slate-300 dark:bg-slate-700" />
+                        <button
+                          onClick={() => setQuickMenuOpen(!quickMenuOpen)}
+                          className="px-2 py-1.5 hover:bg-slate-300/60 dark:hover:bg-slate-700 transition-colors rounded-r-xl"
+                        >
+                          <ChevronDown size={13} />
+                        </button>
+
+                        {/* Quick Menu Dropdown */}
+                        {quickMenuOpen && (
+                          <div className="absolute top-9 left-0 w-44 bg-white dark:bg-[#161a26] border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg p-1 z-50 text-xs font-sans">
+                            <button
+                              onClick={() => {
+                                setQuickMenuOpen(false);
+                                setFolderForm({ name: "", icon: "📁", color: "#3b82f6" });
+                                setFolderModalOpen(true);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left text-slate-700 dark:text-slate-200"
+                            >
+                              <FolderPlus size={14} />
+                              <span>+ New Group / Folder</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setQuickMenuOpen(false);
+                                setSshConfigModalOpen(true);
+                              }}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-left text-slate-700 dark:text-slate-200"
+                            >
+                              <Download size={14} />
+                              <span>Import ~/.ssh/config</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Serial / Local Terminal Button */}
+                      <button
+                        onClick={() => {
+                          connectHost({
+                            id: "local_" + Date.now(),
+                            label: "Serial / Local Shell",
+                            type: "local",
+                            shellType: "zsh",
+                            osType: "macos",
+                          });
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-transparent hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium transition-colors"
+                      >
+                        <TerminalIcon size={14} />
+                        <span>Serial</span>
+                      </button>
+                    </div>
+
+                    {/* Right View Toggles & User Avatar */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500">
+                        <button className="p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                          <LayoutGrid size={15} />
+                        </button>
+                        <button className="p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                          <Tag size={15} />
+                        </button>
+                        <button className="p-1.5 rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                          <Calendar size={15} />
+                        </button>
+                      </div>
+
+                      {/* User Avatar Badge with + */}
+                      <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-slate-800">
+                        <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                          RK
+                        </div>
+                        <div
+                          onClick={() => {
+                            setHostForm({ label: "", type: "ssh", hostname: "", port: 22, username: "", authType: "password", password: "", folderId: null, osType: "ubuntu" });
+                            setHostModalOpen(true);
+                          }}
+                          className="h-5 w-5 rounded-md bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 text-xs cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+                          title="Add Host"
+                        >
+                          <Plus size={11} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: Groups */}
+                {folders.length > 0 && (
+                  <div className="px-4 mt-2 mb-4">
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                      Groups
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {folders.map((folder) => {
+                        const count = hosts.filter(
+                          (h) => h.folderId === folder.id || h.group === folder.name
+                        ).length;
+                        const isFilterActive = activeGroup === folder.name;
+                        return (
+                          <div
+                            key={folder.id}
+                            onClick={() => setActiveGroup(isFilterActive ? "All" : folder.name)}
+                            className={`flex items-center gap-3 p-3 rounded-2xl bg-white dark:bg-[#141926] border transition-all cursor-pointer shadow-xs hover:shadow-md ${
+                              isFilterActive
+                                ? "border-indigo-500 ring-2 ring-indigo-500/20"
+                                : "border-slate-200/80 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700"
+                            }`}
+                          >
+                            <div className="h-10 w-10 rounded-xl bg-[#14284b] dark:bg-[#1a2b4a] flex items-center justify-center text-sky-400 flex-shrink-0">
+                              <Folder size={18} className="fill-sky-400/20 text-sky-400" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-sm text-slate-800 dark:text-white truncate">
+                                {folder.name}
+                              </div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                {count} Hosts
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section: Hosts (3-Column Grid) */}
+                <div className="px-4 mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Hosts {activeGroup !== "All" && `(${activeGroup})`}
+                    </div>
+                    {activeGroup !== "All" && (
+                      <button
+                        onClick={() => setActiveGroup("All")}
+                        className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                      >
+                        Show All ({hosts.length})
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    {filteredHosts.map((h) => (
+                      <div
+                        key={h.id}
+                        onClick={() => connectHost(h)}
+                        className="group relative flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-[#141926] border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-400/80 dark:hover:border-indigo-500/50 hover:shadow-md transition-all cursor-pointer shadow-xs"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          {/* OS Distro Badge (Ubuntu / Server) */}
+                          <DistroBadge osType={h.osType} label={h.label} hostname={h.hostname} />
+
+                          <div className="min-w-0">
+                            <div className="font-bold text-sm text-slate-800 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                              {h.label}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5 truncate">
+                              {h.type === "ssh"
+                                ? `ssh, ${h.username || "root"}`
+                                : `Local Shell (${h.shellType || "zsh"})`}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Hover Action Buttons */}
+                        <div
+                          className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {h.type === "ssh" && (
+                            <button
+                              onClick={() => {
+                                setSftpSelectedHost(h.id);
+                                connectSftp(h.id);
+                                openTab({ id: "sftp_tab", title: "SFTP", type: "sftp" });
+                              }}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                              title="Open SFTP"
+                            >
+                              <FolderSync size={14} />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setHostForm(h);
+                              setHostModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            title="Edit Host"
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* View: Keychain */}
+            {activeNav === "keychain" && (
+              <div className="p-6">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Keychain & SSH Keys</h2>
+                    <p className="text-xs text-slate-500">Kelola kunci kriptografis Ed25519 dan RSA untuk otentikasi SSH tanpa password.</p>
+                  </div>
+                  <button
+                    onClick={() => setKeyModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-500"
+                  >
+                    <Plus size={14} />
+                    <span>Generate Key</span>
+                  </button>
+                </div>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {keys.map((k) => (
+                    <div key={k.id} className="p-4 rounded-2xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-slate-900 dark:text-white">{k.label}</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase">{k.keyType}</span>
+                      </div>
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(k.publicKey || "");
+                            alert("Kunci publik berhasil disalin ke clipboard!");
+                          }}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs hover:bg-indigo-600 hover:text-white transition-colors"
+                        >
+                          <Copy size={12} />
+                          <span>Copy Public Key</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* View: Tunnels */}
+            {activeNav === "tunnels" && (
+              <div className="p-6">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Port Forwarding & SSH Tunnels</h2>
+                    <p className="text-xs text-slate-500">Pengalihan port lokal, remote, dan dynamic SOCKS5 proxy.</p>
+                  </div>
+                  <button
+                    onClick={() => setTunnelModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-500"
+                  >
+                    <Plus size={14} />
+                    <span>New Tunnel</span>
+                  </button>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {tunnels.map((t) => (
+                    <div key={t.id} className="p-3.5 rounded-2xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-xs">
+                      <div>
+                        <div className="font-bold text-sm text-slate-900 dark:text-white">{t.label}</div>
+                        <div className="text-xs font-mono text-slate-500 mt-0.5">
+                          {t.tunnelType.toUpperCase()} : {t.localPort} ➔ {t.remoteHost}:{t.remotePort}
+                        </div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${t.enabled ? "bg-emerald-500/20 text-emerald-500" : "bg-slate-200 dark:bg-slate-800 text-slate-400"}`}>
+                        {t.enabled ? "Active" : "Disabled"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* View: Snippets */}
+            {activeNav === "snippets" && (
+              <div className="p-6">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Snippets Library</h2>
+                    <p className="text-xs text-slate-500">Perintah cepat dengan template variabel otomatis.</p>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {snippets.map((s) => (
+                    <div key={s.id} className="p-3.5 rounded-2xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 shadow-xs">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white">{s.title}</div>
+                      <code className="text-xs font-mono text-indigo-500 block mt-1 bg-slate-100 dark:bg-slate-900/60 p-2 rounded-lg">
+                        {s.command}
+                      </code>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* View: Known Hosts */}
+            {activeNav === "known_hosts" && (
+              <div className="p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Known Hosts & Fingerprints</h2>
+                <p className="text-xs text-slate-500 mb-4">Daftar kunci sidik jari server SSH yang telah diverifikasi.</p>
+                <div className="p-4 rounded-2xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center gap-2 mb-2 font-bold text-slate-800 dark:text-white">
+                    <ShieldCheck size={16} className="text-emerald-500" />
+                    <span>Host Key Fingerprint Registry Verified</span>
+                  </div>
+                  <p className="text-slate-500">Seluruh sesi koneksi diverifikasi secara kriptografis melalui mesin SSH2.</p>
+                </div>
+              </div>
+            )}
+
+            {/* View: Logs */}
+            {activeNav === "logs" && (
+              <div className="p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Session Logs</h2>
+                <p className="text-xs text-slate-500 mb-4">Riwayat log terminal dan aktivitas koneksi.</p>
+                <div className="p-4 rounded-2xl bg-white dark:bg-[#141926] border border-slate-200 dark:border-slate-800 text-xs font-mono text-slate-500">
+                  Belum ada log sesi yang tersimpan. Klik "Save Log" saat sesi terminal sedang aktif.
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Add / Edit Host Modal */}
       {hostModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#121620] border border-[#1e2330] rounded-xl p-5 shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-3">{hostForm.id ? "Edit Host" : "Add Host"}</h3>
-            <div className="space-y-3 text-xs">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#161c2a] border border-slate-200 dark:border-slate-700/80 rounded-2xl w-full max-w-md p-5 shadow-2xl text-slate-800 dark:text-white">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="font-bold text-base">
+                {hostForm.id ? "Edit Host" : "Tambah Host Baru"}
+              </h3>
+              <button onClick={() => setHostModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-3 mt-4 text-xs">
               <div>
-                <label className="text-slate-400 block mb-1">Display Label *</label>
+                <label className="block text-slate-500 mb-1">Label / Nama Server</label>
                 <input
                   type="text"
                   value={hostForm.label || ""}
                   onChange={(e) => setHostForm({ ...hostForm, label: e.target.value })}
-                  placeholder="Ubuntu Server"
-                  className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
+                  placeholder="Mis: FE SUPERAPP AMAN"
+                  className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-400 block mb-1">Folder</label>
-                  <select
-                    value={hostForm.folderId || ""}
-                    onChange={(e) => setHostForm({ ...hostForm, folderId: e.target.value || null })}
-                    className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
-                  >
-                    <option value="">-- Root (Tanpa Folder) --</option>
-                    {folders.map(f => (
-                      <option key={f.id} value={f.id}>{f.icon || "📁"} {f.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-slate-400 block mb-1">Color</label>
-                  <input
-                    type="color"
-                    value={hostForm.color || "#7b61ff"}
-                    onChange={(e) => setHostForm({ ...hostForm, color: e.target.value })}
-                    className="h-8 w-full bg-transparent cursor-pointer rounded"
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-2">
-                  <label className="text-slate-400 block mb-1">Hostname / IP</label>
+                  <label className="block text-slate-500 mb-1">Hostname / IP</label>
                   <input
                     type="text"
                     value={hostForm.hostname || ""}
                     onChange={(e) => setHostForm({ ...hostForm, hostname: e.target.value })}
-                    placeholder="192.168.1.100"
-                    className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
+                    placeholder="10.10.1.20"
+                    className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 block mb-1">Port</label>
+                  <label className="block text-slate-500 mb-1">Port</label>
                   <input
                     type="number"
                     value={hostForm.port || 22}
                     onChange={(e) => setHostForm({ ...hostForm, port: parseInt(e.target.value, 10) || 22 })}
-                    className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
+                    className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="text-slate-400 block mb-1">Username</label>
-                <input
-                  type="text"
-                  value={hostForm.username || ""}
-                  onChange={(e) => setHostForm({ ...hostForm, username: e.target.value })}
-                  placeholder="root, ubuntu"
-                  className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-500 mb-1">Username</label>
+                  <input
+                    type="text"
+                    value={hostForm.username || ""}
+                    onChange={(e) => setHostForm({ ...hostForm, username: e.target.value })}
+                    placeholder="kominfo2"
+                    className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-500 mb-1">Distro OS</label>
+                  <select
+                    value={hostForm.osType || "ubuntu"}
+                    onChange={(e) => setHostForm({ ...hostForm, osType: e.target.value })}
+                    className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                  >
+                    <option value="ubuntu">Ubuntu</option>
+                    <option value="server">Server Rack</option>
+                    <option value="windows">Windows</option>
+                    <option value="macos">macOS</option>
+                  </select>
+                </div>
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1">Password</label>
+                <label className="block text-slate-500 mb-1">Group / Folder</label>
+                <select
+                  value={hostForm.folderId || ""}
+                  onChange={(e) => {
+                    const fid = e.target.value || null;
+                    const folder = folders.find((f) => f.id === fid);
+                    setHostForm({
+                      ...hostForm,
+                      folderId: fid,
+                      group: folder ? folder.name : "Default",
+                    });
+                  }}
+                  className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
+                >
+                  <option value="">(Tanpa Group / Root)</option>
+                  {folders.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-500 mb-1">Password</label>
                 <input
                   type="password"
                   value={hostForm.password || ""}
                   onChange={(e) => setHostForm({ ...hostForm, password: e.target.value })}
-                  placeholder="Password"
-                  className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
+                  placeholder="Password SSH"
+                  className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none focus:border-indigo-500"
                 />
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1">ProxyJump / Bastion</label>
-                <select
-                  value={hostForm.proxyJumpHostId || ""}
-                  onChange={(e) => setHostForm({ ...hostForm, proxyJumpHostId: e.target.value || undefined })}
-                  className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
-                >
-                  <option value="">Direct Connection (Tanpa Bastion)</option>
-                  {hosts.filter(h => h.type === "ssh" && h.id !== hostForm.id).map(h => (
-                    <option key={h.id} value={h.id}>{h.label} ({h.hostname})</option>
-                  ))}
-                </select>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end gap-2">
-              <button onClick={() => setHostModalOpen(false)} className="px-3 py-1.5 rounded bg-slate-800 text-xs text-slate-300">
-                Batal
-              </button>
+            <div className="mt-5 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
               <button
-                onClick={async () => {
-                  const method = hostForm.id ? "PUT" : "POST";
-                  const url = hostForm.id ? `http://127.0.0.1:3980/api/hosts/${hostForm.id}` : "http://127.0.0.1:3980/api/hosts";
-                  await fetch(url, {
-                    method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(hostForm)
-                  });
-                  setHostModalOpen(false);
-                  loadAllData();
-                }}
-                className="px-3 py-1.5 rounded bg-indigo-600 text-xs font-medium text-white"
+                onClick={() => setHostModalOpen(false)}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium"
               >
-                Simpan Host
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal: Folder Form */}
-      {folderModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#121620] border border-[#1e2330] rounded-xl p-5 shadow-2xl">
-            <h3 className="text-base font-bold text-white mb-3">{folderForm.id ? "Edit Folder" : "Buat Folder Baru"}</h3>
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-400 block mb-1">Nama Folder *</label>
-                <input
-                  type="text"
-                  value={folderForm.name || ""}
-                  onChange={(e) => setFolderForm({ ...folderForm, name: e.target.value })}
-                  placeholder="Production Cluster"
-                  className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-400 block mb-1">Ikon</label>
-                  <select
-                    value={folderForm.icon || "📁"}
-                    onChange={(e) => setFolderForm({ ...folderForm, icon: e.target.value })}
-                    className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
-                  >
-                    <option value="📁">📁 Folder</option>
-                    <option value="🚀">🚀 Production</option>
-                    <option value="🧪">🧪 Staging</option>
-                    <option value="💾">💾 Database</option>
-                    <option value="☁️">☁️ Cloud</option>
-                    <option value="🔒">🔒 Security</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-slate-400 block mb-1">Warna</label>
-                  <input
-                    type="color"
-                    value={folderForm.color || "#7b61ff"}
-                    onChange={(e) => setFolderForm({ ...folderForm, color: e.target.value })}
-                    className="h-8 w-full bg-transparent cursor-pointer rounded"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end gap-2">
-              <button onClick={() => setFolderModalOpen(false)} className="px-3 py-1.5 rounded bg-slate-800 text-xs text-slate-300">
                 Batal
               </button>
               <button
                 onClick={async () => {
-                  const method = folderForm.id ? "PUT" : "POST";
-                  const url = folderForm.id ? `http://127.0.0.1:3980/api/folders/${folderForm.id}` : "http://127.0.0.1:3980/api/folders";
-                  await fetch(url, {
-                    method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(folderForm)
+                  if (!hostForm.label || !hostForm.hostname) {
+                    alert("Label dan hostname wajib diisi");
+                    return;
+                  }
+                  const newHost: HostItem = {
+                    id: hostForm.id || "h_" + Date.now(),
+                    label: hostForm.label,
+                    type: "ssh",
+                    hostname: hostForm.hostname,
+                    port: hostForm.port || 22,
+                    username: hostForm.username || "root",
+                    password: hostForm.password,
+                    folderId: hostForm.folderId || null,
+                    group: hostForm.group || "Default",
+                    osType: hostForm.osType || "ubuntu",
+                  };
+
+                  try {
+                    await fetch("http://127.0.0.1:3980/api/hosts", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(newHost),
+                    });
+                  } catch {}
+
+                  setHosts((prev) => {
+                    const exists = prev.some((h) => h.id === newHost.id);
+                    if (exists) return prev.map((h) => (h.id === newHost.id ? newHost : h));
+                    return [...prev, newHost];
                   });
-                  setFolderModalOpen(false);
-                  loadAllData();
+
+                  setHostModalOpen(false);
                 }}
-                className="px-3 py-1.5 rounded bg-indigo-600 text-xs font-medium text-white"
+                className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-xs"
               >
                 Simpan
               </button>
@@ -1569,98 +1315,106 @@ export function TerminalApp() {
         </div>
       )}
 
-      {/* Modal: Import ~/.ssh/config */}
-      {sshConfigModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#121620] border border-[#1e2330] rounded-xl p-5 shadow-2xl text-xs">
-            <h3 className="text-base font-bold text-white mb-2">Import ~/.ssh/config</h3>
-            <p className="text-slate-400 mb-3">
-              ErTerm akan mem-parse file konfigurasi OpenSSH lokal di komputer Anda, mengimpor semua host, port, user, private key, dan aturan ProxyJump otomatis.
-            </p>
-            <div>
-              <label className="text-slate-400 block mb-1">Path Konfigurasi (Opsional):</label>
-              <input
-                type="text"
-                value={sshConfigPath}
-                onChange={(e) => setSshConfigPath(e.target.value)}
-                placeholder="Kosongkan untuk default ~/.ssh/config"
-                className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
-              />
-            </div>
-            {sshConfigResult && (
-              <div className="mt-2 p-2 bg-slate-800 rounded font-mono text-[11px] text-indigo-300">
-                {sshConfigResult}
+      {/* Add Folder / Group Modal */}
+      {folderModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#161c2a] border border-slate-200 dark:border-slate-700/80 rounded-2xl w-full max-w-sm p-5 shadow-2xl text-slate-800 dark:text-white">
+            <h3 className="font-bold text-base mb-3">Tambah Group Baru</h3>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-500 mb-1">Nama Group</label>
+                <input
+                  type="text"
+                  value={folderForm.name || ""}
+                  onChange={(e) => setFolderForm({ ...folderForm, name: e.target.value })}
+                  placeholder="Mis: KOMINFO VPS"
+                  className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none"
+                />
               </div>
-            )}
-            <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end gap-2">
-              <button onClick={() => setSshConfigModalOpen(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">
-                Tutup
+            </div>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setFolderModalOpen(false)}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs"
+              >
+                Batal
               </button>
               <button
                 onClick={async () => {
-                  setSshConfigResult("Membaca dan mengimpor...");
+                  if (!folderForm.name) return;
+                  const newFolder: FolderItem = {
+                    id: "grp_" + Date.now(),
+                    name: folderForm.name,
+                    icon: "📁",
+                    color: "#3b82f6",
+                  };
                   try {
-                    const res = await fetch("http://127.0.0.1:3980/api/hosts/import-ssh-config", {
+                    await fetch("http://127.0.0.1:3980/api/folders", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ customPath: sshConfigPath || undefined })
-                    }).then(r => r.json());
-
-                    if (res.success) {
-                      setSshConfigResult(`✓ Berhasil mengimpor ${res.importedCount} host baru (${res.skippedCount} dilewati).`);
-                      loadAllData();
-                    } else {
-                      setSshConfigResult(`✗ Error: ${res.error}`);
-                    }
-                  } catch (e) {
-                    setSshConfigResult("✗ Network error: " + e);
-                  }
+                      body: JSON.stringify(newFolder),
+                    });
+                  } catch {}
+                  setFolders((prev) => [...prev, newFolder]);
+                  setFolderModalOpen(false);
                 }}
-                className="px-3 py-1.5 rounded bg-indigo-600 text-white font-medium"
+                className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold"
               >
-                Mulai Import
+                Simpan
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: Snippet Variable Interpolator */}
-      {snippetVarModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#121620] border border-[#1e2330] rounded-xl p-5 shadow-2xl text-xs">
-            <h3 className="text-base font-bold text-white mb-2">Isi Variabel Perintah</h3>
-            <p className="text-slate-400 mb-3 font-mono text-[11px]">{snippetTemplateCmd}</p>
-            <div className="space-y-2">
-              {snippetVariables.map(v => (
-                <div key={v}>
-                  <label className="text-slate-400 block mb-1 font-mono text-[11px]">{v}</label>
-                  <input
-                    type="text"
-                    value={snippetVarValues[v] || ""}
-                    onChange={(e) => setSnippetVarValues({ ...snippetVarValues, [v]: e.target.value })}
-                    placeholder={`Nilai untuk {{${v}}}`}
-                    className="w-full bg-[#161a26] border border-[#272d3e] rounded p-2 text-white"
-                  />
+      {/* Import SSH Config Modal */}
+      {sshConfigModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#161c2a] border border-slate-200 dark:border-slate-700/80 rounded-2xl w-full max-w-md p-5 shadow-2xl text-slate-800 dark:text-white">
+            <h3 className="font-bold text-base mb-1">Import ~/.ssh/config</h3>
+            <p className="text-xs text-slate-500 mb-3">Impor server langsung dari konfigurasi SSH lokal.</p>
+            <div className="space-y-3 text-xs">
+              <input
+                type="text"
+                value={sshConfigPath}
+                onChange={(e) => setSshConfigPath(e.target.value)}
+                placeholder="Path opsional (kosongkan untuk ~/.ssh/config default)"
+                className="w-full bg-slate-50 dark:bg-[#111624] border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-slate-800 dark:text-white outline-none"
+              />
+              {sshConfigResult && (
+                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[11px]">
+                  {sshConfigResult}
                 </div>
-              ))}
+              )}
             </div>
-            <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end gap-2">
-              <button onClick={() => setSnippetVarModalOpen(false)} className="px-3 py-1.5 rounded bg-slate-800 text-slate-300">
-                Batal
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setSshConfigModalOpen(false)}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs"
+              >
+                Tutup
               </button>
               <button
-                onClick={() => {
-                  let finalCmd = snippetTemplateCmd;
-                  Object.entries(snippetVarValues).forEach(([k, v]) => {
-                    finalCmd = finalCmd.replace(new RegExp(`\\{\\{\\s*${k}\\s*\\}\\}`, "g"), v);
-                  });
-                  setSnippetVarModalOpen(false);
-                  sendCmdToActiveTerminal(finalCmd);
+                onClick={async () => {
+                  try {
+                    const res = await fetch("http://127.0.0.1:3980/api/hosts/import-ssh-config", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ customPath: sshConfigPath || undefined }),
+                    }).then((r) => r.json());
+                    if (res.success) {
+                      setSshConfigResult(`Berhasil mengimpor ${res.count || 0} host.`);
+                      loadAllData();
+                    } else {
+                      setSshConfigResult("Gagal: " + (res.error || "Gagal membaca berkas"));
+                    }
+                  } catch (e) {
+                    setSshConfigResult("Error: " + e);
+                  }
                 }}
-                className="px-3 py-1.5 rounded bg-indigo-600 text-white font-medium"
+                className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold"
               >
-                Eksekusi
+                Mulai Impor
               </button>
             </div>
           </div>

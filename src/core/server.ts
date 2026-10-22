@@ -1568,9 +1568,22 @@ wss.on('connection', (ws: WebSocket) => {
       const data = JSON.parse(msg) as { type: string; hostId?: string; cols?: number; rows?: number; data?: string };
 
       if (data.type === 'init') {
-        const { hostId, cols = 80, rows = 24 } = data;
-        const hosts = readData<HostItem[]>('hosts.json', []);
-        const host = hosts.find(h => h.id === hostId);
+        const { hostId, host: providedHost, cols = 80, rows = 24 } = data as {
+          type: string;
+          hostId?: string;
+          host?: HostItem;
+          cols?: number;
+          rows?: number;
+          data?: string;
+        };
+        let hosts = readData<HostItem[]>('hosts.json', []);
+        let host = hosts.find(h => h.id === hostId);
+
+        if (!host && providedHost && typeof providedHost === 'object' && providedHost.id) {
+          host = providedHost;
+          hosts.push(host);
+          writeData('hosts.json', hosts);
+        }
 
         if (!host) {
           ws.send(JSON.stringify({ type: 'error', message: `Host "${hostId}" not found` }));

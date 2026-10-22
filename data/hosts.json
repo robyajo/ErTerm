@@ -1,0 +1,178 @@
+[
+  {
+    "id": "h1",
+    "label": "FE SUPERAPP AMAN",
+    "type": "ssh",
+    "hostname": "10.10.1.20",
+    "port": 22,
+    "username": "kominfo2",
+    "folderId": "grp_kominfo",
+    "group": "KOMINFO VPS",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h2",
+    "label": "Bapenda Pajak MPP",
+    "type": "ssh",
+    "hostname": "10.10.2.14",
+    "port": 22,
+    "username": "p3kanbaru",
+    "folderId": "grp_mpp",
+    "group": "MPP SERVER",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h3",
+    "label": "AMAN SUPER APP |KOMINFO (MPP) P...",
+    "type": "ssh",
+    "hostname": "10.10.1.25",
+    "port": 22,
+    "username": "kominfo4",
+    "folderId": "grp_kominfo",
+    "group": "KOMINFO VPS",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h4",
+    "label": "VPS MITUNI",
+    "type": "ssh",
+    "hostname": "10.10.3.10",
+    "port": 22,
+    "username": "mituni",
+    "folderId": "grp_kominfo",
+    "group": "KOMINFO VPS",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h5",
+    "label": "VPS HOME ROBY",
+    "type": "ssh",
+    "hostname": "192.168.1.100",
+    "port": 22,
+    "username": "roby",
+    "folderId": null,
+    "group": "Default",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h6",
+    "label": "STUNTING SWEEPER",
+    "type": "ssh",
+    "hostname": "10.10.4.12",
+    "port": 22,
+    "username": "stunting",
+    "folderId": "grp_kominfo",
+    "group": "KOMINFO VPS",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h7",
+    "label": "ROBY DEV",
+    "type": "ssh",
+    "hostname": "192.168.1.101",
+    "port": 22,
+    "username": "roby",
+    "folderId": null,
+    "group": "Default",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h8",
+    "label": "Camp",
+    "type": "ssh",
+    "hostname": "10.10.5.15",
+    "port": 22,
+    "username": "camp",
+    "folderId": null,
+    "group": "Default",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h9",
+    "label": "OPD Pekanbaru",
+    "type": "ssh",
+    "hostname": "10.10.6.18",
+    "port": 22,
+    "username": "admin",
+    "folderId": "grp_kominfo",
+    "group": "KOMINFO VPS",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h10",
+    "label": "KOMINFO WEB OPD",
+    "type": "ssh",
+    "hostname": "10.10.6.20",
+    "port": 22,
+    "username": "admin",
+    "folderId": "grp_kominfo",
+    "group": "KOMINFO VPS",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h11",
+    "label": "Camp Server",
+    "type": "ssh",
+    "hostname": "10.10.5.16",
+    "port": 22,
+    "username": "camp",
+    "folderId": null,
+    "group": "Default",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h12",
+    "label": "Jobfair Pekanbaru Disnaker | KOMINFO",
+    "type": "ssh",
+    "hostname": "10.10.7.22",
+    "port": 22,
+    "username": "roby",
+    "folderId": "grp_kominfo",
+    "group": "KOMINFO VPS",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h13",
+    "label": "BIMA FE",
+    "type": "ssh",
+    "hostname": "10.10.8.30",
+    "port": 22,
+    "username": "bimafe",
+    "folderId": "grp_mpp",
+    "group": "MPP SERVER",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h14",
+    "label": "Jobfair No VPN",
+    "type": "ssh",
+    "hostname": "10.10.7.25",
+    "port": 22,
+    "username": "roby",
+    "folderId": null,
+    "group": "Default",
+    "osType": "ubuntu"
+  },
+  {
+    "id": "h15",
+    "label": "Pohon FE dan Silabus",
+    "type": "ssh",
+    "hostname": "10.10.9.40",
+    "port": 22,
+    "username": "roby",
+    "folderId": "grp_mpp",
+    "group": "MPP SERVER",
+    "osType": "server"
+  },
+  {
+    "id": "h16",
+    "label": "Silabus Dan Pohon",
+    "type": "ssh",
+    "hostname": "10.10.9.41",
+    "port": 22,
+    "username": "roby",
+    "folderId": "grp_mpp",
+    "group": "MPP SERVER",
+    "osType": "server"
+  }
+]

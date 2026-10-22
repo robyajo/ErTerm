@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-22",
+  "type": "feature",
+  "project": {
+    "name": "ErTerm"
+  },
+  "title": {
+    "id": "Rilis v1.0.4 — Antarmuka Baru Khas Termius Desktop, Mode Gelap & Terang, dan Peningkatan Keandalan Koneksi",
+    "en": "Release v1.0.4 — New Termius-Style Desktop Interface, Dark & Light Mode, and Connection Reliability Improvements"
+  },
+  "body": {
+    "id": "Pembaruan v1.0.4 resmi meluncurkan perombakan desain antarmuka penuh khas Termius Desktop. Menghadirkan dukungan tema ganda (Mode Terang dan Mode Gelap) yang dapat diganti seketika, bilah judul terpadu dengan pemilih profil awan dan tab terminal dinamis, kotak pencarian cerdas dengan tombol sambung cepat, pengelompokan server visual dengan lencana distro sistem operasi resmi, serta perbaikan keandalan inisialisasi koneksi server.",
+    "en": "Release v1.0.4 officially introduces a comprehensive Termius-inspired interface overhaul. Features include dual-theme support (Light Mode and Dark Mode) with instant toggling, an integrated titlebar with cloud profile switcher and dynamic terminal tabs, smart search with quick-connect button, visual server grouping with authentic OS distro badges, and connection initialization reliability fixes."
+  },
+  "items": [
+    {
+      "type": "feature",
+      "id": "Dukungan Mode Terang & Mode Gelap: Tampilan tema terang dengan palet lembut yang nyaman di mata dan tema gelap malam yang elegan, dapat diubah dengan satu tombol di bilah atas.",
+      "en": "Light & Dark Mode Support: Soft and comfortable light theme alongside an elegant midnight dark palette, switchable with a single top bar toggle."
+    },
+    {
+      "type": "feature",
+      "id": "Bilah Judul Terpadu: Penataan kontrol jendela macOS dan Windows, tab sesi terminal aktif langsung di bilah atas, tombol profil awan, dan pemilih tema instan.",
+      "en": "Integrated Top Titlebar: Harmonized macOS and Windows controls, inline active terminal session tabs in the top bar, cloud profile button, and instant theme toggle."
+    },
+    {
+      "type": "feature",
+      "id": "Bilah Pencarian Cerdas & Sambung Cepat: Kotak pencarian pencari server terintegrasi dengan tombol sambung instan untuk koneksi langsung via nama atau alamat server.",
+      "en": "Smart Search & Instant Connect: Integrated search bar with instant connect button for direct connection via server name or address."
+    },
+    {
+      "type": "feature",
+      "id": "Kartu Server & Lencana Distro OS Resmi: Tampilan grid kartu server bersudut membulat dengan ikon resmi distro sistem operasi (Ubuntu oranye dan rak server biru).",
+      "en": "Server Cards & Official OS Distro Badges: Rounded-corner server card grid with authentic OS distro badges (Ubuntu orange and blue server rack)."
+    },
+    {
+      "type": "fix",
+      "id": "Keandalan Inisialisasi Koneksi Sesi: Memastikan seluruh sesi terminal terhubung mulus tanpa kendala identifikasi server pada koneksi pertama.",
+      "en": "Session Connection Initialization Reliability: Ensures all terminal sessions establish smoothly without host identification issues on initial launch."
+    },
+    {
+      "type": "fix",
+      "id": "Penyelarasan Bilah Judul macOS & Windows: Penataan presisi tombol kendali jendela bawaan macOS serta penghapusan kontrol ganda yang bertumpukan.",
+      "en": "macOS & Windows Window Controls Alignment: Precise positioning of native macOS window buttons and removal of redundant duplicate controls."
+    },
+    {
+      "type": "feature",
+      "id": "Navigasi Sidebar Presisi: Menu modular yang tertata rapi untuk Hosts, Keychain, Port Forwarding, Snippets, Known Hosts, dan Logs.",
+      "en": "Precision Sidebar Navigation: Clean modular menu featuring Hosts, Keychain, Port Forwarding, Snippets, Known Hosts, and Logs."
+    }
+  ]
+}

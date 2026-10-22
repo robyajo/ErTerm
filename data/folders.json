@@ -1,0 +1,14 @@
+[
+  {
+    "id": "grp_kominfo",
+    "name": "KOMINFO VPS",
+    "icon": "📁",
+    "color": "#3b82f6"
+  },
+  {
+    "id": "grp_mpp",
+    "name": "MPP SERVER",
+    "icon": "📁",
+    "color": "#6366f1"
+  }
+]

@@ -1,6 +1,6 @@
 {
   "name": "erterm",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "ErTerm — Modern Cross-Platform SSH & Terminal Client with React, Vite & shadcn/ui",
   "license": "MIT",
