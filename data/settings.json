@@ -1,0 +1,9 @@
+{
+  "theme": "dark",
+  "fontFamily": "Consolas, 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace",
+  "fontSize": 14,
+  "cursorBlink": true,
+  "cursorStyle": "block",
+  "cloudApiUrl": "https://www.er-service.duckdns.org",
+  "cloudSyncKey": "robyfull.dev@gmail.com"
+}

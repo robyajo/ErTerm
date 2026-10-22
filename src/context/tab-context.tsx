@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getCurrentTheme, setTheme as setIpcTheme } from "@/actions/theme";
-import type { HostItem } from "@/core/types";
+import type { HostItem, SettingsData } from "@/core/types";
 
 export interface TabItem {
   id: string;
@@ -33,6 +33,14 @@ interface TabContextType {
   setOnConnectHost: (fn: (host: HostItem) => void) => void;
   onOpenNewHostModal?: () => void;
   setOnOpenNewHostModal: (fn: () => void) => void;
+  settingsModalOpen: boolean;
+  setSettingsModalOpen: (open: boolean) => void;
+  settings: SettingsData;
+  setSettings: React.Dispatch<React.SetStateAction<SettingsData>>;
+  onOpenFolderModal?: () => void;
+  setOnOpenFolderModal: (fn: () => void) => void;
+  onOpenSshConfigModal?: () => void;
+  setOnOpenSshConfigModal: (fn: () => void) => void;
 }
 
 const TabContext = createContext<TabContextType | undefined>(undefined);
@@ -46,6 +54,10 @@ export function TabProvider({ children }: { children: ReactNode }) {
   const [hosts, setHosts] = useState<HostItem[]>([]);
   const [onConnectHostState, setOnConnectHostState] = useState<((host: HostItem) => void) | undefined>(undefined);
   const [onOpenNewHostModalState, setOnOpenNewHostModalState] = useState<(() => void) | undefined>(undefined);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [settings, setSettings] = useState<SettingsData>({});
+  const [onOpenFolderModalState, setOnOpenFolderModalState] = useState<(() => void) | undefined>(undefined);
+  const [onOpenSshConfigModalState, setOnOpenSshConfigModalState] = useState<(() => void) | undefined>(undefined);
 
   const syncThemeDOM = (isDark: boolean) => {
     if (typeof document === "undefined") return;
@@ -73,6 +85,23 @@ export function TabProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  // Load backend settings and theme on startup to ensure cross-device consistency
+  useEffect(() => {
+    fetch("http://127.0.0.1:3980/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.settings) {
+          setSettings(data.settings);
+          if (data.settings.theme === "dark" || data.settings.theme === "light") {
+            setThemeState(data.settings.theme);
+            syncThemeDOM(data.settings.theme === "dark");
+            localStorage.setItem("theme", data.settings.theme);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const toggleTheme = () => {
     setThemeState((prev) => {
       const next = prev === "dark" ? "light" : "dark";
@@ -83,6 +112,12 @@ export function TabProvider({ children }: { children: ReactNode }) {
       } catch {
         // ignore IPC error if offline
       }
+      // Immediately sync theme change to backend registry
+      fetch("http://127.0.0.1:3980/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: next }),
+      }).catch((e) => console.warn("Failed to sync theme to backend:", e));
       return next;
     });
   };
@@ -118,6 +153,14 @@ export function TabProvider({ children }: { children: ReactNode }) {
     setOnOpenNewHostModalState(() => fn);
   };
 
+  const setOnOpenFolderModal = (fn: () => void) => {
+    setOnOpenFolderModalState(() => fn);
+  };
+
+  const setOnOpenSshConfigModal = (fn: () => void) => {
+    setOnOpenSshConfigModalState(() => fn);
+  };
+
   return (
     <TabContext.Provider
       value={{
@@ -140,6 +183,14 @@ export function TabProvider({ children }: { children: ReactNode }) {
         setOnConnectHost,
         onOpenNewHostModal: onOpenNewHostModalState,
         setOnOpenNewHostModal,
+        settingsModalOpen,
+        setSettingsModalOpen,
+        settings,
+        setSettings,
+        onOpenFolderModal: onOpenFolderModalState,
+        setOnOpenFolderModal,
+        onOpenSshConfigModal: onOpenSshConfigModalState,
+        setOnOpenSshConfigModal,
       }}
     >
       {children}

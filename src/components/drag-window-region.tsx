@@ -18,6 +18,18 @@ import {
   Menu,
   Search,
   ArrowRight,
+  Settings,
+  Layers,
+  KeyRound,
+  Network,
+  FileCode,
+  Globe,
+  Clock,
+  FolderSync,
+  FolderPlus,
+  Upload,
+  Check,
+  ChevronRight,
 } from "lucide-react";
 import { DistroBadge, TabDistroIcon } from "@/components/distro-badge";
 import type { HostItem } from "@/core/types";
@@ -52,6 +64,13 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
   const btnRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Burger Menu Bar & Settings Dropdown state
+  const [burgerMenuOpen, setBurgerMenuOpen] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState<"edit" | "view" | "window" | "help" | null>(null);
+  const [burgerMenuPos, setBurgerMenuPos] = useState({ top: 46, left: 12 });
+  const burgerBtnRef = useRef<HTMLButtonElement>(null);
+  const burgerMenuRef = useRef<HTMLDivElement>(null);
+
   const {
     tabs,
     activeTabId,
@@ -61,10 +80,14 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
     toggleTheme,
     onNewTabTrigger,
     openTab,
+    activeNav,
     setActiveNav,
     hosts = [],
     onConnectHost,
     onOpenNewHostModal,
+    setSettingsModalOpen,
+    onOpenFolderModal,
+    onOpenSshConfigModal,
   } = useTabContext();
 
   useEffect(() => {
@@ -90,35 +113,85 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
         left: Math.max(12, Math.min(rect.left, window.innerWidth - 340)),
       });
       setNewTabMenuOpen(true);
+      setBurgerMenuOpen(false);
     } else {
       setNewTabMenuOpen(false);
     }
   };
 
-  // Close menu on click outside or Escape
+  const handleToggleBurgerMenu = () => {
+    if (!burgerMenuOpen && burgerBtnRef.current) {
+      const rect = burgerBtnRef.current.getBoundingClientRect();
+      setBurgerMenuPos({
+        top: rect.bottom + 6,
+        left: Math.max(8, rect.left),
+      });
+      setBurgerMenuOpen(true);
+      setActiveSubmenu(null);
+      setNewTabMenuOpen(false);
+    } else {
+      setBurgerMenuOpen(false);
+      setActiveSubmenu(null);
+    }
+  };
+
+  // Close menus on click outside or Escape
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
       if (
         menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
+        !menuRef.current.contains(target) &&
         btnRef.current &&
-        !btnRef.current.contains(event.target as Node)
+        !btnRef.current.contains(target)
       ) {
         setNewTabMenuOpen(false);
+      }
+      if (
+        burgerMenuRef.current &&
+        !burgerMenuRef.current.contains(target) &&
+        burgerBtnRef.current &&
+        !burgerBtnRef.current.contains(target)
+      ) {
+        setBurgerMenuOpen(false);
+        setActiveSubmenu(null);
       }
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setNewTabMenuOpen(false);
+        setBurgerMenuOpen(false);
+        setActiveSubmenu(null);
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "t") {
         event.preventDefault();
         handleToggleMenu();
       }
+      if ((event.ctrlKey || event.metaKey) && event.key === "1") {
+        event.preventDefault();
+        setActiveTabId(null);
+        setActiveNav("hosts");
+        setBurgerMenuOpen(false);
+        setActiveSubmenu(null);
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === "2") {
+        event.preventDefault();
+        handleOpenSFTP();
+        setBurgerMenuOpen(false);
+        setActiveSubmenu(null);
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === ",") {
+        event.preventDefault();
+        setSettingsModalOpen(true);
+        setBurgerMenuOpen(false);
+        setActiveSubmenu(null);
+      }
     };
 
-    if (newTabMenuOpen) {
+    if (newTabMenuOpen || burgerMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+    }
+    if (newTabMenuOpen) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
@@ -129,7 +202,7 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [newTabMenuOpen]);
+  }, [newTabMenuOpen, burgerMenuOpen]);
 
   const handleOpenSFTP = () => {
     setActiveNav("hosts");
@@ -222,16 +295,414 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
         {/* Menu Hamburger Button */}
         <div className="no-drag flex items-center">
           <button
-            onClick={() => {
-              setActiveTabId(null);
-              setActiveNav("hosts");
-            }}
-            className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-            title="Dashboard / Menu"
+            ref={burgerBtnRef}
+            onClick={handleToggleBurgerMenu}
+            className={`p-1.5 rounded-md transition-all cursor-pointer ${
+              burgerMenuOpen
+                ? "bg-indigo-600 text-white shadow-xs scale-95"
+                : "hover:bg-slate-100 dark:hover:bg-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+            title="Menu Bar & Pengaturan (Settings)"
             type="button"
+            aria-label="Application Menu & Settings"
           >
             <Menu size={14} />
           </button>
+
+          {/* Burger Menu Popover Dropdown (Exact Termius Desktop Menu) */}
+          {burgerMenuOpen && (
+            <div
+              ref={burgerMenuRef}
+              className="fixed w-60 bg-[#1e222d] text-[#d1d5db] border border-white/10 rounded-xl shadow-2xl py-1.5 px-1 z-[9999] flex flex-col font-sans select-none backdrop-blur-md text-[13px]"
+              style={{
+                top: burgerMenuPos.top,
+                left: burgerMenuPos.left,
+                filter: "drop-shadow(0 20px 30px rgba(0,0,0,0.65))",
+              }}
+            >
+              {/* Vaults (Ctrl+1) */}
+              <button
+                onClick={() => {
+                  setBurgerMenuOpen(false);
+                  setActiveSubmenu(null);
+                  setActiveTabId(null);
+                  setActiveNav("hosts");
+                }}
+                onMouseEnter={() => setActiveSubmenu(null)}
+                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                type="button"
+              >
+                <span>Vaults</span>
+                <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+1</span>
+              </button>
+
+              {/* SFTP (Ctrl+2) */}
+              <button
+                onClick={() => {
+                  setBurgerMenuOpen(false);
+                  setActiveSubmenu(null);
+                  handleOpenSFTP();
+                }}
+                onMouseEnter={() => setActiveSubmenu(null)}
+                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                type="button"
+              >
+                <span>SFTP</span>
+                <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+2</span>
+              </button>
+
+              {/* Settings (Ctrl+Comma) */}
+              <button
+                onClick={() => {
+                  setBurgerMenuOpen(false);
+                  setActiveSubmenu(null);
+                  setSettingsModalOpen(true);
+                }}
+                onMouseEnter={() => setActiveSubmenu(null)}
+                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                type="button"
+              >
+                <span>Settings</span>
+                <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+Comma</span>
+              </button>
+
+              {/* Divider */}
+              <div className="h-px bg-white/[0.08] my-1 mx-1.5" />
+
+              {/* New Local Terminal */}
+              <button
+                onClick={() => {
+                  setBurgerMenuOpen(false);
+                  setActiveSubmenu(null);
+                  if (onConnectHost) {
+                    onConnectHost({
+                      id: "local_" + Date.now(),
+                      label: "Local Terminal",
+                      type: "local",
+                      shellType: "powershell",
+                      osType: "windows",
+                    });
+                  }
+                }}
+                onMouseEnter={() => setActiveSubmenu(null)}
+                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                type="button"
+              >
+                <span>New Local Terminal</span>
+              </button>
+
+              {/* New Serial Connection */}
+              <button
+                onClick={() => {
+                  setBurgerMenuOpen(false);
+                  setActiveSubmenu(null);
+                  setActiveTabId(null);
+                  setActiveNav("hosts");
+                  if (onOpenNewHostModal) onOpenNewHostModal();
+                }}
+                onMouseEnter={() => setActiveSubmenu(null)}
+                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                type="button"
+              >
+                <span>New Serial Connection</span>
+              </button>
+
+              {/* Edit (with submenu) */}
+              <div
+                className="relative"
+                onMouseEnter={() => setActiveSubmenu("edit")}
+              >
+                <button
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                    activeSubmenu === "edit"
+                      ? "bg-[#282d3d] text-white"
+                      : "text-slate-200 hover:text-white hover:bg-[#282d3d]"
+                  }`}
+                  type="button"
+                >
+                  <span>Edit</span>
+                  <ChevronRight size={13} className="text-slate-400" />
+                </button>
+
+                {activeSubmenu === "edit" && (
+                  <div
+                    className="absolute left-full top-0 ml-1 w-48 bg-[#1e222d] text-[#d1d5db] border border-white/10 rounded-xl shadow-2xl py-1.5 px-1 z-[10000] flex flex-col font-sans backdrop-blur-md text-[13px]"
+                    onMouseEnter={() => setActiveSubmenu("edit")}
+                  >
+                    <button
+                      onClick={() => {
+                        document.execCommand("undo");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Undo</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+Z</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        document.execCommand("redo");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Redo</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+Y</span>
+                    </button>
+                    <div className="h-px bg-white/[0.08] my-1 mx-1.5" />
+                    <button
+                      onClick={() => {
+                        document.execCommand("cut");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Cut</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+X</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        document.execCommand("copy");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Copy</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+C</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        document.execCommand("paste");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Paste</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+V</span>
+                    </button>
+                    <div className="h-px bg-white/[0.08] my-1 mx-1.5" />
+                    <button
+                      onClick={() => {
+                        document.execCommand("selectAll");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Select All</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+A</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* View (with submenu) */}
+              <div
+                className="relative"
+                onMouseEnter={() => setActiveSubmenu("view")}
+              >
+                <button
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                    activeSubmenu === "view"
+                      ? "bg-[#282d3d] text-white"
+                      : "text-slate-200 hover:text-white hover:bg-[#282d3d]"
+                  }`}
+                  type="button"
+                >
+                  <span>View</span>
+                  <ChevronRight size={13} className="text-slate-400" />
+                </button>
+
+                {activeSubmenu === "view" && (
+                  <div
+                    className="absolute left-full top-0 ml-1 w-52 bg-[#1e222d] text-[#d1d5db] border border-white/10 rounded-xl shadow-2xl py-1.5 px-1 z-[10000] flex flex-col font-sans backdrop-blur-md text-[13px]"
+                    onMouseEnter={() => setActiveSubmenu("view")}
+                  >
+                    <button
+                      onClick={() => {
+                        if (document.fullscreenElement) {
+                          document.exitFullscreen().catch(() => {});
+                        } else {
+                          document.documentElement.requestFullscreen().catch(() => {});
+                        }
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Toggle Full Screen</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">F11</span>
+                    </button>
+                    <div className="h-px bg-white/[0.08] my-1 mx-1.5" />
+                    <button
+                      onClick={() => {
+                        toggleTheme();
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Toggle Dark/Light</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">{theme === "dark" ? "Dark" : "Light"}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActiveTabId(null);
+                        setActiveNav("hosts");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Show All Hosts</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Window (with submenu) */}
+              <div
+                className="relative"
+                onMouseEnter={() => setActiveSubmenu("window")}
+              >
+                <button
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                    activeSubmenu === "window"
+                      ? "bg-[#282d3d] text-white"
+                      : "text-slate-200 hover:text-white hover:bg-[#282d3d]"
+                  }`}
+                  type="button"
+                >
+                  <span>Window</span>
+                  <ChevronRight size={13} className="text-slate-400" />
+                </button>
+
+                {activeSubmenu === "window" && (
+                  <div
+                    className="absolute left-full top-0 ml-1 w-48 bg-[#1e222d] text-[#d1d5db] border border-white/10 rounded-xl shadow-2xl py-1.5 px-1 z-[10000] flex flex-col font-sans backdrop-blur-md text-[13px]"
+                    onMouseEnter={() => setActiveSubmenu("window")}
+                  >
+                    <button
+                      onClick={() => {
+                        minimizeWindow();
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Minimize</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+M</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        maximizeWindow();
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Zoom / Maximize</span>
+                    </button>
+                    <div className="h-px bg-white/[0.08] my-1 mx-1.5" />
+                    <button
+                      onClick={() => {
+                        closeWindow();
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Close Window</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Alt+F4</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Help (with submenu) */}
+              <div
+                className="relative"
+                onMouseEnter={() => setActiveSubmenu("help")}
+              >
+                <button
+                  className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                    activeSubmenu === "help"
+                      ? "bg-[#282d3d] text-white"
+                      : "text-slate-200 hover:text-white hover:bg-[#282d3d]"
+                  }`}
+                  type="button"
+                >
+                  <span>Help</span>
+                  <ChevronRight size={13} className="text-slate-400" />
+                </button>
+
+                {activeSubmenu === "help" && (
+                  <div
+                    className="absolute left-full top-0 ml-1 w-52 bg-[#1e222d] text-[#d1d5db] border border-white/10 rounded-xl shadow-2xl py-1.5 px-1 z-[10000] flex flex-col font-sans backdrop-blur-md text-[13px]"
+                    onMouseEnter={() => setActiveSubmenu("help")}
+                  >
+                    <button
+                      onClick={() => {
+                        setSettingsModalOpen(true);
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Preferences</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+Comma</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSettingsModalOpen(true);
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>About ErTerm</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-white/[0.08] my-1 mx-1.5" />
+
+              {/* Exit */}
+              <button
+                onClick={() => {
+                  setBurgerMenuOpen(false);
+                  setActiveSubmenu(null);
+                  closeWindow();
+                }}
+                onMouseEnter={() => setActiveSubmenu(null)}
+                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-rose-600/30 transition-colors cursor-pointer"
+                type="button"
+              >
+                <span>Exit</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Vaults Cloud Dropdown Button */}

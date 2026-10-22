@@ -1,0 +1,20 @@
+[
+  {
+    "id": "ee5fe8a7-7c29-4a74-b499-03fc7f2f36ae",
+    "title": "Docker Clean All",
+    "description": "Membersihkan container & images mati",
+    "command": "docker system prune -af --volumes",
+    "category": "Docker",
+    "tags": [
+      "docker"
+    ]
+  },
+  {
+    "id": "d7751ab0-858c-48df-ab13-cf834452ff0c",
+    "title": "Docker Prune",
+    "description": "",
+    "command": "docker system prune -af",
+    "category": "Docker",
+    "tags": []
+  }
+]

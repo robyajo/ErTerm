@@ -377,7 +377,7 @@ function parseSshConfig(content: string): Array<Partial<HostItem> & { identityFi
 }
 
 // -------------------------------------------------------------
-// Per-Account Registry Manager (registry-<accountId>.json)
+// Per-Account Registry Manager (registry-<accountId>.json & registry.json)
 // -------------------------------------------------------------
 function getRegistryFilePath(accountId: string): string {
   const safeId = accountId.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -386,9 +386,15 @@ function getRegistryFilePath(accountId: string): string {
 
 function loadAccountRegistry(accountId: string): AccountRegistry {
   const regPath = getRegistryFilePath(accountId);
+  const masterPath = path.join(DATA_DIR, 'registry.json');
   if (fs.existsSync(regPath)) {
     try {
       return JSON.parse(fs.readFileSync(regPath, 'utf-8')) as AccountRegistry;
+    } catch {}
+  }
+  if (fs.existsSync(masterPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(masterPath, 'utf-8')) as AccountRegistry;
     } catch {}
   }
   return {
@@ -400,14 +406,25 @@ function loadAccountRegistry(accountId: string): AccountRegistry {
     tunnels: readData<TunnelItem[]>('tunnels.json', []),
     keys: readData<SshKeyItem[]>('keys.json', []),
     snippets: readData<SnippetItem[]>('snippets.json', []),
-    settings: readData<SettingsData>('settings.json', {})
+    settings: readData<SettingsData>('settings.json', {}),
+    knownHosts: readData<KnownHostEntry[]>('known_hosts.json', [])
   };
 }
 
 function saveAccountRegistry(registry: AccountRegistry): void {
   const regPath = getRegistryFilePath(registry.accountId);
+  const masterPath = path.join(DATA_DIR, 'registry.json');
+  const rootDataMaster = path.join(PROJECT_ROOT, 'data', 'registry.json');
   try {
-    fs.writeFileSync(regPath, JSON.stringify(registry, null, 2), 'utf-8');
+    const jsonStr = JSON.stringify(registry, null, 2);
+    fs.writeFileSync(regPath, jsonStr, 'utf-8');
+    fs.writeFileSync(masterPath, jsonStr, 'utf-8');
+    if (rootDataMaster !== masterPath) {
+      if (!fs.existsSync(path.dirname(rootDataMaster))) {
+        fs.mkdirSync(path.dirname(rootDataMaster), { recursive: true });
+      }
+      fs.writeFileSync(rootDataMaster, jsonStr, 'utf-8');
+    }
   } catch (err) {
     console.error('Error saving account registry:', err);
   }
@@ -423,7 +440,8 @@ function syncActiveRegistry(accountId = 'default-user'): void {
     tunnels: readData<TunnelItem[]>('tunnels.json', []),
     keys: readData<SshKeyItem[]>('keys.json', []),
     snippets: readData<SnippetItem[]>('snippets.json', []),
-    settings: readData<SettingsData>('settings.json', {})
+    settings: readData<SettingsData>('settings.json', {}),
+    knownHosts: readData<KnownHostEntry[]>('known_hosts.json', [])
   };
   saveAccountRegistry(registry);
 }
@@ -439,6 +457,13 @@ app.get('/api/folders', (_req: Request, res: Response) => {
 app.post('/api/folders', (req: Request, res: Response) => {
   const folders = readData<FolderItem[]>('folders.json', []);
   const body = req.body as Partial<FolderItem>;
+  const existingIdx = body.id ? folders.findIndex(f => f.id === body.id) : -1;
+  if (existingIdx !== -1) {
+    folders[existingIdx] = { ...folders[existingIdx], ...body, updatedAt: Date.now() };
+    writeData('folders.json', folders);
+    syncActiveRegistry();
+    return res.json({ success: true, folder: folders[existingIdx] });
+  }
   const newFolder: FolderItem = {
     id: body.id || `folder_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     name: body.name || 'New Folder',
@@ -511,6 +536,26 @@ app.post('/api/registry/activate', (req: Request, res: Response) => {
   res.json({ success: true, message: `Active workspace switched to account ${accountId}`, registry });
 });
 
+app.post('/api/registry/sync', (req: Request, res: Response) => {
+  const body = req.body as Partial<AccountRegistry>;
+  const accountId = body.accountId || 'default-user';
+
+  if (Array.isArray(body.folders)) writeData('folders.json', body.folders);
+  if (Array.isArray(body.hosts)) writeData('hosts.json', body.hosts);
+  if (Array.isArray(body.tunnels)) writeData('tunnels.json', body.tunnels);
+  if (Array.isArray(body.keys)) writeData('keys.json', body.keys);
+  if (Array.isArray(body.snippets)) writeData('snippets.json', body.snippets);
+  if (body.settings && typeof body.settings === 'object') {
+    const cur = readData<SettingsData>('settings.json', {});
+    writeData('settings.json', { ...cur, ...body.settings });
+  }
+  if (Array.isArray(body.knownHosts)) writeData('known_hosts.json', body.knownHosts);
+
+  syncActiveRegistry(accountId);
+  const updated = loadAccountRegistry(accountId);
+  res.json({ success: true, registry: updated });
+});
+
 // -------------------------------------------------------------
 // Hosts API
 // -------------------------------------------------------------
@@ -522,6 +567,13 @@ app.get('/api/hosts', (_req: Request, res: Response) => {
 app.post('/api/hosts', (req: Request, res: Response) => {
   const hosts = readData<HostItem[]>('hosts.json', []);
   const body = req.body as Partial<HostItem>;
+  const existingIdx = body.id ? hosts.findIndex(h => h.id === body.id) : -1;
+  if (existingIdx !== -1) {
+    hosts[existingIdx] = { ...hosts[existingIdx], ...body, id: hosts[existingIdx].id };
+    writeData('hosts.json', hosts);
+    syncActiveRegistry();
+    return res.json({ success: true, host: hosts[existingIdx] });
+  }
   const newHost: HostItem = {
     id: body.id || uuidv4(),
     label: body.label || 'New Host',
@@ -681,6 +733,7 @@ app.post('/api/hosts/import-ssh-config', (req: Request, res: Response) => {
 
     writeData('hosts.json', existingHosts);
     writeData('keys.json', existingKeys);
+    syncActiveRegistry();
 
     res.json({
       success: true,
@@ -759,16 +812,26 @@ app.get('/api/snippets', (_req: Request, res: Response) => {
 app.post('/api/snippets', (req: Request, res: Response) => {
   const snippets = readData<SnippetItem[]>('snippets.json', []);
   const body = req.body as Partial<SnippetItem>;
+  const existingIdx = body.id ? snippets.findIndex(s => s.id === body.id) : -1;
+  if (existingIdx !== -1) {
+    snippets[existingIdx] = { ...snippets[existingIdx], ...body, updatedAt: Date.now() };
+    writeData('snippets.json', snippets);
+    syncActiveRegistry();
+    return res.json({ success: true, snippet: snippets[existingIdx] });
+  }
   const newSnippet: SnippetItem = {
     id: body.id || uuidv4(),
     title: body.title || 'Untitled Snippet',
     description: body.description || '',
     command: body.command || '',
     category: body.category || 'General',
-    tags: Array.isArray(body.tags) ? body.tags : []
+    tags: Array.isArray(body.tags) ? body.tags : [],
+    createdAt: Date.now(),
+    updatedAt: Date.now()
   };
   snippets.push(newSnippet);
   writeData('snippets.json', snippets);
+  syncActiveRegistry();
   res.json({ success: true, snippet: newSnippet });
 });
 
@@ -776,6 +839,7 @@ app.delete('/api/snippets/:id', (req: Request, res: Response) => {
   let snippets = readData<SnippetItem[]>('snippets.json', []);
   snippets = snippets.filter(s => s.id !== req.params.id);
   writeData('snippets.json', snippets);
+  syncActiveRegistry();
   res.json({ success: true });
 });
 
@@ -803,6 +867,7 @@ app.post('/api/settings', (req: Request, res: Response) => {
   const cur = readData<SettingsData>('settings.json', {});
   const updated = { ...cur, ...(req.body as SettingsData) };
   writeData('settings.json', updated);
+  syncActiveRegistry();
   res.json({ success: true, settings: updated });
 });
 
@@ -1480,6 +1545,13 @@ app.get('/api/tunnels', (_req: Request, res: Response) => {
 app.post('/api/tunnels', (req: Request, res: Response) => {
   const tunnels = readData<TunnelItem[]>('tunnels.json', []);
   const body = req.body as Partial<TunnelItem>;
+  const existingIdx = body.id ? tunnels.findIndex(t => t.id === body.id) : -1;
+  if (existingIdx !== -1) {
+    tunnels[existingIdx] = { ...tunnels[existingIdx], ...body };
+    writeData('tunnels.json', tunnels);
+    syncActiveRegistry();
+    return res.json({ success: true, tunnel: tunnels[existingIdx] });
+  }
   const newTunnel: TunnelItem = {
     id: body.id || `tun_${Date.now()}`,
     label: body.label || 'New Tunnel',
@@ -1494,12 +1566,14 @@ app.post('/api/tunnels', (req: Request, res: Response) => {
   };
   tunnels.push(newTunnel);
   writeData('tunnels.json', tunnels);
+  syncActiveRegistry();
 
   if (newTunnel.enabled) {
     startTunnel(newTunnel, (ok, err) => {
       newTunnel.status = ok ? 'active' : 'error';
       newTunnel.errorMessage = err;
       writeData('tunnels.json', tunnels);
+      syncActiveRegistry();
     });
   }
 
@@ -1518,6 +1592,7 @@ app.post('/api/tunnels/:id/toggle', (req: Request, res: Response) => {
     tunnel.status = 'inactive';
     tunnel.errorMessage = undefined;
     writeData('tunnels.json', tunnels);
+    syncActiveRegistry();
     return res.json({ success: true, enabled: false, status: 'inactive' });
   } else {
     tunnel.enabled = true;
@@ -1525,6 +1600,7 @@ app.post('/api/tunnels/:id/toggle', (req: Request, res: Response) => {
       tunnel.status = ok ? 'active' : 'error';
       tunnel.errorMessage = err;
       writeData('tunnels.json', tunnels);
+      syncActiveRegistry();
     });
     return res.json({ success: true, enabled: true, status: 'active' });
   }
@@ -1536,6 +1612,7 @@ app.delete('/api/tunnels/:id', (req: Request, res: Response) => {
   let tunnels = readData<TunnelItem[]>('tunnels.json', []);
   tunnels = tunnels.filter(t => t.id !== tunnelId);
   writeData('tunnels.json', tunnels);
+  syncActiveRegistry();
   res.json({ success: true });
 });
 app.get('/api/keys', (_req: Request, res: Response) => {
@@ -1575,11 +1652,21 @@ app.post('/api/keys/generate', (req: Request, res: Response) => {
     };
     keys.push(newKey);
     writeData('keys.json', keys);
+    syncActiveRegistry();
     res.json({ success: true, key: newKey });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     res.status(500).json({ success: false, error: errorMsg });
   }
+});
+
+app.delete('/api/keys/:id', (req: Request, res: Response) => {
+  const keyId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  let keys = readData<SshKeyItem[]>('keys.json', []);
+  keys = keys.filter(k => k.id !== keyId);
+  writeData('keys.json', keys);
+  syncActiveRegistry();
+  res.json({ success: true, keys });
 });
 
 // -------------------------------------------------------------
@@ -1618,6 +1705,7 @@ app.post('/api/known-hosts', (req: Request, res: Response) => {
     });
   }
   writeData('known_hosts.json', entries);
+  syncActiveRegistry();
   res.json({ success: true, knownHosts: entries });
 });
 
@@ -1626,6 +1714,7 @@ app.delete('/api/known-hosts/:id', (req: Request, res: Response) => {
   let entries = readData<KnownHostEntry[]>('known_hosts.json', []);
   entries = entries.filter((e) => e.id !== id);
   writeData('known_hosts.json', entries);
+  syncActiveRegistry();
   res.json({ success: true, knownHosts: entries });
 });
 
@@ -1978,6 +2067,13 @@ wss.on('connection', (ws: WebSocket) => {
     }
   });
 });
+
+// Ensure master registry JSON is initialized and synchronized on boot
+try {
+  syncActiveRegistry();
+} catch (err: unknown) {
+  console.warn('Initial registry sync warning:', err);
+}
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`\n======================================================`);

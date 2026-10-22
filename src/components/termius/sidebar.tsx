@@ -5,8 +5,10 @@ import {
   FileCode,
   Globe,
   Clock,
+  Settings,
 } from "lucide-react";
 import type { NavItem } from "@/context/tab-context";
+import { useTabContext } from "@/context/tab-context";
 
 interface TermiusSidebarProps {
   activeNav: NavItem;
@@ -21,6 +23,7 @@ export function TermiusSidebar({
   activeTabId,
   setActiveTabId,
 }: TermiusSidebarProps) {
+  const { setSettingsModalOpen } = useTabContext();
   const navItems: Array<{ id: NavItem; label: string; icon: typeof Layers }> = [
     { id: "hosts", label: "Hosts", icon: Layers },
     { id: "keychain", label: "Keychain", icon: KeyRound },
@@ -57,6 +60,27 @@ export function TermiusSidebar({
             </button>
           );
         })}
+
+        <div className="pt-2 pb-1">
+          <div className="h-px bg-slate-200 dark:bg-white/5" />
+        </div>
+
+        <button
+          onClick={() => setSettingsModalOpen(true)}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/40 transition-all cursor-pointer group"
+          type="button"
+        >
+          <div className="flex items-center gap-3">
+            <Settings
+              size={17}
+              className="text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:rotate-45 transition-transform"
+            />
+            <span>Settings</span>
+          </div>
+          <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-white/5 text-slate-500">
+            Ctrl+,
+          </kbd>
+        </button>
       </div>
 
       {/* Sidebar Footer */}

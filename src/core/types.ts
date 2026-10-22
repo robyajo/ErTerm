@@ -131,6 +131,7 @@ export interface AccountRegistry {
   keys: SshKeyItem[];
   snippets: SnippetItem[];
   settings: SettingsData;
+  knownHosts?: KnownHostEntry[];
 }
 
 export interface KnownHostEntry {

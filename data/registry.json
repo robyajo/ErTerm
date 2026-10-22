@@ -1,0 +1,303 @@
+{
+  "accountId": "default-user",
+  "version": 1,
+  "updatedAt": 1792705397660,
+  "folders": [
+    {
+      "id": "grp_mpp",
+      "name": "MPP SERVER",
+      "color": "#6366f1",
+      "icon": "📁",
+      "parentId": null,
+      "orderIndex": 0,
+      "collapsed": false,
+      "createdAt": 1792692138123,
+      "updatedAt": 1792692138123
+    }
+  ],
+  "hosts": [
+    {
+      "id": "h_roby_vps",
+      "label": "Roby VPS DuckDNS",
+      "type": "ssh",
+      "hostname": "roby-vps.duckdns.org",
+      "port": 2223,
+      "username": "roby",
+      "authType": "password",
+      "password": "Tiram@1993",
+      "folderId": null,
+      "group": "Default",
+      "osType": "ubuntu",
+      "icon": "ubuntu",
+      "lastConnected": 1792704075808
+    },
+    {
+      "id": "h1",
+      "label": "layanan-bapenda.pekanbaru.go.id",
+      "type": "ssh",
+      "hostname": "layanan-bapenda.pekanbaru.go.id",
+      "port": 22,
+      "username": "p3kanbaru",
+      "folderId": "grp_mpp",
+      "group": "MPP SERVER",
+      "osType": "ubuntu",
+      "icon": "ubuntu"
+    },
+    {
+      "id": "h2",
+      "label": "SUPERAPP WEB",
+      "type": "ssh",
+      "hostname": "10.10.1.20",
+      "port": 22,
+      "username": "kominfo2",
+      "folderId": "grp_mpp",
+      "group": "MPP SERVER",
+      "osType": "ubuntu",
+      "icon": "ubuntu",
+      "lastConnected": 1792703924076
+    },
+    {
+      "id": "h3",
+      "label": "Mituni VPS",
+      "type": "ssh",
+      "hostname": "10.10.3.10",
+      "port": 22,
+      "username": "mituni",
+      "folderId": "grp_mpp",
+      "group": "MPP SERVER",
+      "osType": "ubuntu",
+      "icon": "ubuntu"
+    },
+    {
+      "id": "h4",
+      "label": "SUPER APP API",
+      "type": "ssh",
+      "hostname": "10.10.1.25",
+      "port": 22,
+      "username": "kominfo4",
+      "folderId": null,
+      "group": "Default",
+      "osType": "ubuntu",
+      "icon": "ubuntu"
+    },
+    {
+      "id": "h5",
+      "label": "VPS HOME ROBY",
+      "type": "ssh",
+      "hostname": "192.168.1.100",
+      "port": 22,
+      "username": "roby",
+      "folderId": null,
+      "group": "Default",
+      "osType": "ubuntu",
+      "icon": "ubuntu",
+      "lastConnected": 1792702245081
+    },
+    {
+      "id": "h6",
+      "label": "roby.dev.pekanbaru.go.id",
+      "type": "ssh",
+      "hostname": "roby.dev.pekanbaru.go.id",
+      "port": 22,
+      "username": "roby",
+      "folderId": null,
+      "group": "Default",
+      "osType": "ubuntu",
+      "icon": "ubuntu"
+    },
+    {
+      "id": "h7",
+      "label": "PHP",
+      "type": "ssh",
+      "hostname": "10.10.1.26",
+      "port": 22,
+      "username": "kominfo4",
+      "folderId": null,
+      "group": "Default",
+      "osType": "ubuntu",
+      "icon": "ubuntu"
+    },
+    {
+      "id": "h8",
+      "label": "VPS KOMINFO JOBFAIR",
+      "type": "ssh",
+      "hostname": "10.10.7.22",
+      "port": 22,
+      "username": "roby",
+      "folderId": null,
+      "group": "Default",
+      "osType": "ubuntu",
+      "icon": "ubuntu"
+    },
+    {
+      "id": "h9",
+      "label": "VPS HOSTINGER DISNAKER",
+      "type": "ssh",
+      "hostname": "156.67.218.107",
+      "port": 22,
+      "username": "roby",
+      "folderId": null,
+      "group": "Default",
+      "osType": "ubuntu",
+      "icon": "ubuntu",
+      "lastConnected": 1792699686860
+    },
+    {
+      "id": "h10",
+      "label": "VPS KODE LOAKAL",
+      "type": "ssh",
+      "hostname": "127.0.0.1",
+      "port": 22,
+      "username": "",
+      "folderId": null,
+      "group": "Default",
+      "osType": "server",
+      "icon": "server"
+    },
+    {
+      "id": "local_1792700024814",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700024984
+    },
+    {
+      "id": "local_1792700061816",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700062028
+    },
+    {
+      "id": "local_1792700091099",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700091356
+    },
+    {
+      "id": "local_1792700435960",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700436173
+    },
+    {
+      "id": "local_1792700464192",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700464408
+    },
+    {
+      "id": "local_1792700659397",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700659943
+    },
+    {
+      "id": "local_1792700732183",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700734790
+    },
+    {
+      "id": "local_1792700742360",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700742629
+    },
+    {
+      "id": "local_1792700870206",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700870423
+    },
+    {
+      "id": "local_1792700935428",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700935593
+    },
+    {
+      "id": "local_1792700950915",
+      "label": "Local Shell",
+      "type": "local",
+      "shellType": "zsh",
+      "osType": "macos",
+      "lastConnected": 1792700951079
+    },
+    {
+      "id": "h_roby_vps",
+      "label": "Roby VPS DuckDNS",
+      "type": "ssh",
+      "hostname": "roby-vps.duckdns.org",
+      "port": 2223,
+      "username": "roby",
+      "authType": "password",
+      "password": "Tiram@1993",
+      "privateKey": "",
+      "passphrase": "",
+      "keyId": "",
+      "folderId": null,
+      "orderIndex": 22,
+      "group": "Default",
+      "color": "#7b61ff",
+      "shellType": "powershell",
+      "proxyJumpHostId": "",
+      "startupScript": "",
+      "osType": "ubuntu",
+      "tags": [],
+      "backspace": "Default",
+      "createdAt": 1792704000492,
+      "lastConnected": null
+    }
+  ],
+  "tunnels": [],
+  "keys": [],
+  "snippets": [
+    {
+      "id": "ee5fe8a7-7c29-4a74-b499-03fc7f2f36ae",
+      "title": "Docker Clean All",
+      "description": "Membersihkan container & images mati",
+      "command": "docker system prune -af --volumes",
+      "category": "Docker",
+      "tags": [
+        "docker"
+      ]
+    },
+    {
+      "id": "d7751ab0-858c-48df-ab13-cf834452ff0c",
+      "title": "Docker Prune",
+      "description": "",
+      "command": "docker system prune -af",
+      "category": "Docker",
+      "tags": []
+    }
+  ],
+  "settings": {
+    "theme": "dark",
+    "fontFamily": "Consolas, 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace",
+    "fontSize": 14,
+    "cursorBlink": true,
+    "cursorStyle": "block",
+    "cloudApiUrl": "https://www.er-service.duckdns.org",
+    "cloudSyncKey": "robyfull.dev@gmail.com"
+  },
+  "knownHosts": []
+}

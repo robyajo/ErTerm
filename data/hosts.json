@@ -11,7 +11,8 @@
     "folderId": null,
     "group": "Default",
     "osType": "ubuntu",
-    "icon": "ubuntu"
+    "icon": "ubuntu",
+    "lastConnected": 1792704075808
   },
   {
     "id": "h1",
@@ -35,7 +36,8 @@
     "folderId": "grp_mpp",
     "group": "MPP SERVER",
     "osType": "ubuntu",
-    "icon": "ubuntu"
+    "icon": "ubuntu",
+    "lastConnected": 1792703924076
   },
   {
     "id": "h3",
@@ -71,7 +73,8 @@
     "folderId": null,
     "group": "Default",
     "osType": "ubuntu",
-    "icon": "ubuntu"
+    "icon": "ubuntu",
+    "lastConnected": 1792702245081
   },
   {
     "id": "h6",
@@ -119,7 +122,8 @@
     "folderId": null,
     "group": "Default",
     "osType": "ubuntu",
-    "icon": "ubuntu"
+    "icon": "ubuntu",
+    "lastConnected": 1792699686860
   },
   {
     "id": "h10",
@@ -132,5 +136,118 @@
     "group": "Default",
     "osType": "server",
     "icon": "server"
+  },
+  {
+    "id": "local_1792700024814",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700024984
+  },
+  {
+    "id": "local_1792700061816",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700062028
+  },
+  {
+    "id": "local_1792700091099",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700091356
+  },
+  {
+    "id": "local_1792700435960",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700436173
+  },
+  {
+    "id": "local_1792700464192",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700464408
+  },
+  {
+    "id": "local_1792700659397",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700659943
+  },
+  {
+    "id": "local_1792700732183",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700734790
+  },
+  {
+    "id": "local_1792700742360",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700742629
+  },
+  {
+    "id": "local_1792700870206",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700870423
+  },
+  {
+    "id": "local_1792700935428",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700935593
+  },
+  {
+    "id": "local_1792700950915",
+    "label": "Local Shell",
+    "type": "local",
+    "shellType": "zsh",
+    "osType": "macos",
+    "lastConnected": 1792700951079
+  },
+  {
+    "id": "h_roby_vps",
+    "label": "Roby VPS DuckDNS",
+    "type": "ssh",
+    "hostname": "roby-vps.duckdns.org",
+    "port": 2223,
+    "username": "roby",
+    "authType": "password",
+    "password": "Tiram@1993",
+    "privateKey": "",
+    "passphrase": "",
+    "keyId": "",
+    "folderId": null,
+    "orderIndex": 22,
+    "group": "Default",
+    "color": "#7b61ff",
+    "shellType": "powershell",
+    "proxyJumpHostId": "",
+    "startupScript": "",
+    "osType": "ubuntu",
+    "tags": [],
+    "backspace": "Default",
+    "createdAt": 1792704000492,
+    "lastConnected": null
   }
 ]

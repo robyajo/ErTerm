@@ -2,7 +2,12 @@
   {
     "id": "grp_mpp",
     "name": "MPP SERVER",
+    "color": "#6366f1",
     "icon": "📁",
-    "color": "#6366f1"
+    "parentId": null,
+    "orderIndex": 0,
+    "collapsed": false,
+    "createdAt": 1792692138123,
+    "updatedAt": 1792692138123
   }
 ]

@@ -14,3 +14,5 @@ export { HostSheet } from "./sheets/host-sheet";
 export { FolderSheet } from "./sheets/folder-sheet";
 export { DeleteAlertDialog } from "./dialogs/delete-alert-dialog";
 export { ConnectionLoadingView } from "./connection-loading-view";
+export { SettingsModal } from "./modals/settings-modal";
+

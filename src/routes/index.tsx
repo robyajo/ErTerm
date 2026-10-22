@@ -30,6 +30,7 @@ import {
   HostSheet,
   FolderSheet,
   DeleteAlertDialog,
+  SettingsModal,
   type ActiveTerminalTab,
 } from "@/components/termius";
 
@@ -64,6 +65,14 @@ export function TerminalApp() {
     setHosts,
     setOnConnectHost,
     setOnOpenNewHostModal,
+    settingsModalOpen,
+    setSettingsModalOpen,
+    settings,
+    setSettings,
+    theme,
+    toggleTheme,
+    setOnOpenFolderModal,
+    setOnOpenSshConfigModal,
   } = useTabContext();
 
   // Core Data
@@ -71,7 +80,6 @@ export function TerminalApp() {
   const [snippets, setSnippets] = useState<SnippetItem[]>([]);
   const [tunnels, setTunnels] = useState<TunnelItem[]>([]);
   const [keys, setKeys] = useState<SshKeyItem[]>([]);
-  const [settings, setSettings] = useState<SettingsData>({});
   const [, setAppVersion] = useState("1.0.4");
 
   // Filtering & Search
@@ -144,12 +152,22 @@ export function TerminalApp() {
         setHosts(hRes.hosts);
       } else {
         setHosts(SEED_HOSTS);
+        fetch("http://127.0.0.1:3980/api/registry/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hosts: SEED_HOSTS }),
+        }).catch(() => {});
       }
 
       if (fRes.success && fRes.folders && fRes.folders.length > 0) {
         setFolders(fRes.folders);
       } else {
         setFolders(SEED_FOLDERS);
+        fetch("http://127.0.0.1:3980/api/registry/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ folders: SEED_FOLDERS }),
+        }).catch(() => {});
       }
 
       if (sRes.success) setSnippets(sRes.snippets || []);
@@ -639,7 +657,30 @@ export function TerminalApp() {
       setActiveNav("hosts");
       openHostModal();
     });
-  }, [setOnConnectHost, setOnOpenNewHostModal]);
+    setOnOpenFolderModal(() => {
+      setActiveTabId(null);
+      setActiveNav("hosts");
+      openFolderModal();
+    });
+    setOnOpenSshConfigModal(() => {
+      setSshConfigModalOpen(true);
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === ",") {
+        e.preventDefault();
+        setSettingsModalOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    setOnConnectHost,
+    setOnOpenNewHostModal,
+    setOnOpenFolderModal,
+    setOnOpenSshConfigModal,
+    setSettingsModalOpen,
+  ]);
 
   const openFolderModal = (folder?: Partial<FolderItem>) => {
     if (folder) {
@@ -745,6 +786,118 @@ export function TerminalApp() {
     setDeleteConfirmation(null);
   };
 
+  const handleGenerateKey = async (label: string, keyType: "ed25519" | "rsa") => {
+    try {
+      const res = await fetch("http://127.0.0.1:3980/api/keys/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label, type: keyType }),
+      }).then((r) => r.json());
+
+      if (res.success && res.key) {
+        setKeys((prev) => [...prev, res.key]);
+      }
+    } catch (e) {
+      console.error("Generate key error:", e);
+    }
+  };
+
+  const handleDeleteKey = async (id: string) => {
+    try {
+      await fetch(`http://127.0.0.1:3980/api/keys/${id}`, {
+        method: "DELETE",
+      });
+      setKeys((prev) => prev.filter((k) => k.id !== id));
+    } catch (e) {
+      console.error("Delete key error:", e);
+    }
+  };
+
+  const handleNewTunnel = async (tunnel: Partial<TunnelItem>) => {
+    try {
+      const res = await fetch("http://127.0.0.1:3980/api/tunnels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tunnel),
+      }).then((r) => r.json());
+
+      if (res.success && res.tunnel) {
+        setTunnels((prev) => [...prev, res.tunnel]);
+      }
+    } catch (e) {
+      console.error("Create tunnel error:", e);
+    }
+  };
+
+  const handleToggleTunnel = async (id: string) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:3980/api/tunnels/${id}/toggle`, {
+        method: "POST",
+      }).then((r) => r.json());
+
+      if (res.success) {
+        setTunnels((prev) =>
+          prev.map((t) =>
+            t.id === id ? { ...t, enabled: res.enabled, status: res.status } : t
+          )
+        );
+      }
+    } catch (e) {
+      console.error("Toggle tunnel error:", e);
+    }
+  };
+
+  const handleDeleteTunnel = async (id: string) => {
+    try {
+      await fetch(`http://127.0.0.1:3980/api/tunnels/${id}`, {
+        method: "DELETE",
+      });
+      setTunnels((prev) => prev.filter((t) => t.id !== id));
+    } catch (e) {
+      console.error("Delete tunnel error:", e);
+    }
+  };
+
+  const handleNewSnippet = async (snippet: Partial<SnippetItem>) => {
+    try {
+      const res = await fetch("http://127.0.0.1:3980/api/snippets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snippet),
+      }).then((r) => r.json());
+
+      if (res.success && res.snippet) {
+        setSnippets((prev) => [...prev, res.snippet]);
+      }
+    } catch (e) {
+      console.error("Create snippet error:", e);
+    }
+  };
+
+  const handleDeleteSnippet = async (id: string) => {
+    try {
+      await fetch(`http://127.0.0.1:3980/api/snippets/${id}`, {
+        method: "DELETE",
+      });
+      setSnippets((prev) => prev.filter((s) => s.id !== id));
+    } catch (e) {
+      console.error("Delete snippet error:", e);
+    }
+  };
+
+  const handleSaveSettings = async (newSettings: SettingsData) => {
+    setSettings(newSettings);
+    try {
+      await fetch("http://127.0.0.1:3980/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newSettings),
+      });
+    } catch (e) {
+      console.error("Save settings error:", e);
+    }
+  };
+
   return (
     <div className="flex h-full w-full bg-[#f0f2f6] dark:bg-[#0a0d18] text-slate-800 dark:text-slate-100 overflow-hidden select-none font-sans transition-colors duration-200">
       {/* Sidebar Navigation - visible on dashboard and SFTP */}
@@ -837,16 +990,25 @@ export function TerminalApp() {
             {activeNav === "keychain" && (
               <KeychainView
                 keys={keys}
-                onGenerateKey={() => alert("Fitur Generate Key akan segera hadir.")}
+                onGenerateKey={handleGenerateKey}
+                onDeleteKey={handleDeleteKey}
               />
             )}
             {activeNav === "tunnels" && (
               <TunnelsView
                 tunnels={tunnels}
-                onNewTunnel={() => alert("Fitur New Tunnel akan segera hadir.")}
+                onNewTunnel={handleNewTunnel}
+                onToggleTunnel={handleToggleTunnel}
+                onDeleteTunnel={handleDeleteTunnel}
               />
             )}
-            {activeNav === "snippets" && <SnippetsView snippets={snippets} />}
+            {activeNav === "snippets" && (
+              <SnippetsView
+                snippets={snippets}
+                onNewSnippet={handleNewSnippet}
+                onDeleteSnippet={handleDeleteSnippet}
+              />
+            )}
             {activeNav === "known_hosts" && <KnownHostsView />}
             {activeNav === "logs" && <LogsView />}
           </div>
@@ -888,6 +1050,15 @@ export function TerminalApp() {
         open={sshConfigModalOpen}
         onClose={() => setSshConfigModalOpen(false)}
         onImportSuccess={loadAllData}
+      />
+
+      <SettingsModal
+        open={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+        settings={settings}
+        onSaveSettings={handleSaveSettings}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
       <DeleteAlertDialog

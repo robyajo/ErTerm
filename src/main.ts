@@ -5,6 +5,7 @@ import {
   installExtension,
   REACT_DEVELOPER_TOOLS,
 } from "electron-devtools-installer";
+// Initialize backend core server
 import "@/core/server";
 import { UpdateSourceType, updateElectronApp } from "update-electron-app";
 import { ipcContext } from "@/ipc/context";
@@ -57,7 +58,7 @@ function createWindow() {
 async function installExtensions() {
   try {
     const result = await installExtension(REACT_DEVELOPER_TOOLS);
-    console.log(`Extensions installed successfully: ${result.name}`);
+    console.log("Extensions installed successfully:", result);
   } catch {
     console.error("Failed to install extensions");
   }
