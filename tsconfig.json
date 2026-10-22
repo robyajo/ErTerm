@@ -15,7 +15,8 @@
     "sourceMap": true,
     "strict": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@assets/*": ["./assets/*"]
     },
     "outDir": "dist",
     "moduleResolution": "bundler",

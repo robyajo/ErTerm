@@ -45,9 +45,12 @@ export async function syncWithLocalTheme() {
 }
 
 function updateDocumentTheme(isDarkMode: boolean) {
+  if (typeof document === "undefined") return;
   if (isDarkMode) {
     document.documentElement.classList.add("dark");
+    document.body?.classList.add("dark");
   } else {
     document.documentElement.classList.remove("dark");
+    document.body?.classList.remove("dark");
   }
 }

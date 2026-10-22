@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getCurrentTheme, setTheme as setIpcTheme } from "@/actions/theme";
+import type { HostItem } from "@/core/types";
 
 export interface TabItem {
   id: string;
@@ -26,6 +27,12 @@ interface TabContextType {
   setSearchQuery: (q: string) => void;
   onNewTabTrigger?: () => void;
   setOnNewTabTrigger: (fn: () => void) => void;
+  hosts: HostItem[];
+  setHosts: React.Dispatch<React.SetStateAction<HostItem[]>>;
+  onConnectHost?: (host: HostItem) => void;
+  setOnConnectHost: (fn: (host: HostItem) => void) => void;
+  onOpenNewHostModal?: () => void;
+  setOnOpenNewHostModal: (fn: () => void) => void;
 }
 
 const TabContext = createContext<TabContextType | undefined>(undefined);
@@ -36,35 +43,40 @@ export function TabProvider({ children }: { children: ReactNode }) {
   const [activeNav, setActiveNav] = useState<NavItem>("hosts");
   const [searchQuery, setSearchQuery] = useState("");
   const [onNewTabTrigger, setOnNewTabTriggerState] = useState<(() => void) | undefined>(undefined);
+  const [hosts, setHosts] = useState<HostItem[]>([]);
+  const [onConnectHostState, setOnConnectHostState] = useState<((host: HostItem) => void) | undefined>(undefined);
+  const [onOpenNewHostModalState, setOnOpenNewHostModalState] = useState<(() => void) | undefined>(undefined);
+
+  const syncThemeDOM = (isDark: boolean) => {
+    if (typeof document === "undefined") return;
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+      document.body?.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.body?.classList.remove("dark");
+    }
+  };
 
   const [theme, setThemeState] = useState<"dark" | "light">(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("theme");
       if (saved === "light" || saved === "dark") return saved;
-      return document.documentElement.classList.contains("dark") ? "dark" : "dark";
+      return document.documentElement.classList.contains("dark") ? "dark" : "light";
     }
     return "dark";
   });
 
   useEffect(() => {
-    // Initial sync
     const isDark = theme === "dark";
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    syncThemeDOM(isDark);
     localStorage.setItem("theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {
     setThemeState((prev) => {
       const next = prev === "dark" ? "light" : "dark";
-      if (next === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      syncThemeDOM(next === "dark");
       localStorage.setItem("theme", next);
       try {
         setIpcTheme(next);
@@ -98,6 +110,14 @@ export function TabProvider({ children }: { children: ReactNode }) {
     setOnNewTabTriggerState(() => fn);
   };
 
+  const setOnConnectHost = (fn: (host: HostItem) => void) => {
+    setOnConnectHostState(() => fn);
+  };
+
+  const setOnOpenNewHostModal = (fn: () => void) => {
+    setOnOpenNewHostModalState(() => fn);
+  };
+
   return (
     <TabContext.Provider
       value={{
@@ -114,6 +134,12 @@ export function TabProvider({ children }: { children: ReactNode }) {
         setSearchQuery,
         onNewTabTrigger,
         setOnNewTabTrigger,
+        hosts,
+        setHosts,
+        onConnectHost: onConnectHostState,
+        setOnConnectHost,
+        onOpenNewHostModal: onOpenNewHostModalState,
+        setOnOpenNewHostModal,
       }}
     >
       {children}

@@ -18,8 +18,17 @@ export interface HostItem {
   proxyJumpHostId?: string;
   startupScript?: string;
   osType?: string;
+  icon?: string;
   tags?: string[];
   backspace?: string;
+  agentForwarding?: boolean;
+  startupSnippetId?: string;
+  hostChaining?: string;
+  proxyConfig?: string;
+  envVariables?: string;
+  encoding?: string;
+  moshEnabled?: boolean;
+  terminalTheme?: string;
   createdAt?: number;
   lastConnected?: number | null;
 }
@@ -123,3 +132,25 @@ export interface AccountRegistry {
   snippets: SnippetItem[];
   settings: SettingsData;
 }
+
+export interface KnownHostEntry {
+  id: string;
+  hostname: string;
+  port: number;
+  keyType: string;
+  fingerprint: string;
+  firstSeen: number;
+  lastSeen: number;
+  trusted?: boolean;
+}
+
+export interface FingerprintPromptData {
+  hostId: string;
+  hostname: string;
+  port: number;
+  keyType: string;
+  fingerprint: string;
+  reason: 'first_time' | 'changed';
+  oldFingerprint?: string;
+}
+

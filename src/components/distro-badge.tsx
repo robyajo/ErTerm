@@ -1,122 +1,266 @@
-import React from "react";
-import { Server, Monitor, Terminal as TerminalIcon, Laptop } from "lucide-react";
+import {
+  SiUbuntu,
+  SiDebian,
+  SiAlmalinux,
+  SiCentos,
+} from "@icons-pack/react-simple-icons";
+import windowsIcon from "@assets/icon/windows.png";
 
 interface DistroBadgeProps {
-  osType?: string;
-  label?: string;
-  hostname?: string;
   className?: string;
+  hostname?: string;
+  icon?: string;
+  label?: string;
+  osType?: string;
 }
 
-export function DistroBadge({ osType, label, hostname, className = "" }: DistroBadgeProps) {
-  const text = `${osType || ""} ${label || ""} ${hostname || ""}`.toLowerCase();
+export function DistroBadge({
+  className = "",
+  hostname,
+  icon,
+  label,
+  osType,
+}: DistroBadgeProps) {
+  const normIcon = (icon || "").toLowerCase();
+  const normOs = (osType || "").toLowerCase();
+  const normLabel = (label || "").toLowerCase();
+  const normHost = (hostname || "").toLowerCase();
 
-  // Distro heuristic detection based on label/hostname/osType
-  const isUbuntu =
-    osType === "ubuntu" ||
-    text.includes("ubuntu") ||
-    text.includes("aman") ||
-    text.includes("vps") ||
-    text.includes("mpp") ||
-    text.includes("roby") ||
-    text.includes("kominfo") ||
-    text.includes("bapenda") ||
-    text.includes("stunting") ||
-    text.includes("camp") ||
-    text.includes("opd") ||
-    text.includes("jobfair") ||
-    text.includes("bima");
-
+  // 1. Blue Server Rack Badge (Termius 2-Chassis Server Rack as shown on "VPS KODE LOAKAL")
   const isServer =
-    osType === "server" ||
-    text.includes("pohon") ||
-    text.includes("silabus") ||
-    text.includes("server") ||
-    text.includes("rack");
+    normIcon === "server" ||
+    normIcon === "rack" ||
+    normIcon === "default" ||
+    normOs === "server" ||
+    normLabel.includes("loakal") ||
+    normLabel.includes("rack") ||
+    (normIcon === "" && normOs === "" && normLabel.includes("kode"));
 
-  const isWindows =
-    osType === "windows" ||
-    text.includes("win") ||
-    text.includes("rdp") ||
-    text.includes("powershell");
-
-  const isMac =
-    osType === "macos" ||
-    text.includes("mac") ||
-    text.includes("darwin") ||
-    text.includes("apple");
-
-  if (isUbuntu && !isServer) {
-    // Official authentic Ubuntu Circle of Friends icon
+  if (isServer) {
     return (
       <div
-        className={`h-10 w-10 rounded-2xl bg-gradient-to-br from-[#e95420] to-[#dd4814] flex items-center justify-center text-white shadow-sm shadow-orange-500/20 flex-shrink-0 ${className}`}
-        title="Ubuntu Linux"
+        className={`h-9 w-9 rounded-xl bg-[#004878] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+        title="Server Rack"
       >
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-          <circle cx="12" cy="12" r="10.5" fill="#e95420" />
-          {/* Ubuntu 3-node friend circle */}
-          <circle cx="5" cy="12" r="1.6" fill="#ffffff" />
-          <circle cx="15.5" cy="5.9" r="1.6" fill="#ffffff" />
-          <circle cx="15.5" cy="18.1" r="1.6" fill="#ffffff" />
-          <path
-            d="M8.5 12a3.5 3.5 0 0 0 5.2-3.05h1.8a5.3 5.3 0 0 1-8 4.6l1-1.55zm0 0a3.5 3.5 0 0 1 5.2 3.05h1.8a5.3 5.3 0 0 0-8-4.6l1 1.55zM15.5 10.3a3.5 3.5 0 0 0-3.5-1.8V6.7a5.3 5.3 0 0 1 5.3 2.7l-1.8.9zm0 3.4a3.5 3.5 0 0 1-3.5 1.8v1.8a5.3 5.3 0 0 0 5.3-2.7l-1.8-.9z"
-            fill="#ffffff"
-          />
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          className="pointer-events-none select-none"
+        >
+          {/* Top server chassis blade */}
+          <rect x="2.5" y="3.5" width="19" height="7.5" rx="1.5" fill="#ffffff" />
+          <rect x="5.5" y="5.5" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <rect x="8.5" y="5.5" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <rect x="11.5" y="5.5" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <circle cx="17" cy="7.25" r="1.2" fill="#004878" />
+
+          {/* Bottom server chassis blade */}
+          <rect x="2.5" y="13" width="19" height="7.5" rx="1.5" fill="#ffffff" />
+          <rect x="5.5" y="15" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <rect x="8.5" y="15" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <rect x="11.5" y="15" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <circle cx="17" cy="16.75" r="1.2" fill="#004878" />
         </svg>
       </div>
     );
   }
 
-  if (isServer) {
+  // 2. Debian Pink / Red Swirl Badge
+  const isDebian =
+    normIcon === "debian" ||
+    normOs === "debian" ||
+    normLabel.includes("debian") ||
+    normHost.includes("debian");
+
+  if (isDebian) {
     return (
       <div
-        className={`h-10 w-10 rounded-2xl bg-gradient-to-br from-[#1d4ed8] to-[#1e3a8a] flex items-center justify-center text-white shadow-sm shadow-blue-500/20 flex-shrink-0 ${className}`}
-        title="Server Rack"
+        className={`h-9 w-9 rounded-xl bg-[#d70a53] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+        title="Debian Linux"
       >
-        <div className="flex flex-col items-center justify-center gap-1 w-full p-2">
-          <div className="w-full h-2 rounded bg-white/90 flex items-center justify-between px-1">
-            <div className="h-1 w-1 rounded-full bg-emerald-400" />
-            <div className="h-0.5 w-3 rounded bg-blue-900/40" />
-          </div>
-          <div className="w-full h-2 rounded bg-white/90 flex items-center justify-between px-1">
-            <div className="h-1 w-1 rounded-full bg-indigo-400" />
-            <div className="h-0.5 w-3 rounded bg-blue-900/40" />
-          </div>
-        </div>
+        <SiDebian size={20} color="#ffffff" className="pointer-events-none select-none" />
       </div>
     );
   }
+
+  // 3. AlmaLinux / RHEL / CentOS Badge
+  const isAlma =
+    normIcon === "alma" ||
+    normIcon === "centos" ||
+    normIcon === "rhel" ||
+    normOs === "alma" ||
+    normOs === "centos" ||
+    normOs === "rhel" ||
+    normLabel.includes("alma") ||
+    normLabel.includes("centos") ||
+    normLabel.includes("rhel") ||
+    normLabel.includes("rocky");
+
+  if (isAlma) {
+    return (
+      <div
+        className={`h-9 w-9 rounded-xl bg-[#002f6c] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+        title="AlmaLinux / RHEL"
+      >
+        {normIcon === "centos" || normLabel.includes("centos") ? (
+          <SiCentos size={20} color="#ffffff" className="pointer-events-none select-none" />
+        ) : (
+          <SiAlmalinux size={20} color="#ffffff" className="pointer-events-none select-none" />
+        )}
+      </div>
+    );
+  }
+
+  // 4. Windows 4-Square Blue Badge
+  const isWindows =
+    normIcon === "windows" ||
+    normOs === "windows" ||
+    normLabel.includes("win") ||
+    normLabel.includes("rdp") ||
+    normHost.includes("win");
 
   if (isWindows) {
     return (
       <div
-        className={`h-10 w-10 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-sm shadow-sky-500/20 flex-shrink-0 ${className}`}
+        className={`h-9 w-9 rounded-xl bg-[#0078d4] flex items-center justify-center p-2 text-white flex-shrink-0 shadow-xs ${className}`}
         title="Windows"
       >
-        <Monitor size={18} strokeWidth={2.2} />
+        <img
+          src={windowsIcon}
+          alt="Windows"
+          className="h-5 w-5 object-contain pointer-events-none select-none brightness-125"
+        />
       </div>
     );
   }
 
-  if (isMac) {
-    return (
-      <div
-        className={`h-10 w-10 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center text-white shadow-sm flex-shrink-0 ${className}`}
-        title="macOS"
-      >
-        <Laptop size={18} strokeWidth={2.2} />
-      </div>
-    );
-  }
-
-  // Default server badge
+  // 5. Authentic Ubuntu Vibrant Orange Squircle with white circle-of-friends logo (matches screenshot 100%)
   return (
     <div
-      className={`h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm shadow-indigo-500/20 flex-shrink-0 ${className}`}
-      title="Terminal Host"
+      className={`h-9 w-9 rounded-xl bg-[#e95420] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+      title="Ubuntu Linux"
     >
-      <TerminalIcon size={18} strokeWidth={2.2} />
+      <SiUbuntu size={21} color="#ffffff" className="pointer-events-none select-none" />
     </div>
   );
 }
+
+export function TabDistroIcon({
+  hostname,
+  icon,
+  label,
+  osType,
+  className = "",
+}: DistroBadgeProps) {
+  const normIcon = (icon || "").toLowerCase();
+  const normOs = (osType || "").toLowerCase();
+  const normLabel = (label || "").toLowerCase();
+  const normHost = (hostname || "").toLowerCase();
+
+  // 1. Blue Server Rack (compact 16px)
+  const isServer =
+    normIcon === "server" ||
+    normIcon === "rack" ||
+    normIcon === "default" ||
+    normOs === "server" ||
+    normLabel.includes("loakal") ||
+    normLabel.includes("rack") ||
+    (normIcon === "" && normOs === "" && normLabel.includes("kode"));
+
+  if (isServer) {
+    return (
+      <div
+        className={`h-4 w-4 rounded-[4px] bg-[#004878] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+        title="Server Rack"
+      >
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" className="pointer-events-none select-none">
+          <rect x="2.5" y="3.5" width="19" height="7.5" rx="1.5" fill="#ffffff" />
+          <rect x="5.5" y="5.5" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <circle cx="17" cy="7.25" r="1.2" fill="#004878" />
+          <rect x="2.5" y="13" width="19" height="7.5" rx="1.5" fill="#ffffff" />
+          <rect x="5.5" y="15" width="1.5" height="3.5" rx="0.5" fill="#004878" />
+          <circle cx="17" cy="16.75" r="1.2" fill="#004878" />
+        </svg>
+      </div>
+    );
+  }
+
+  // 2. Debian Pink / Red
+  const isDebian =
+    normIcon === "debian" ||
+    normOs === "debian" ||
+    normLabel.includes("debian") ||
+    normHost.includes("debian");
+
+  if (isDebian) {
+    return (
+      <div
+        className={`h-4 w-4 rounded-[4px] bg-[#d70a53] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+        title="Debian"
+      >
+        <SiDebian size={10} color="#ffffff" className="pointer-events-none select-none" />
+      </div>
+    );
+  }
+
+  // 3. AlmaLinux / CentOS
+  const isAlma =
+    normIcon === "alma" ||
+    normIcon === "centos" ||
+    normIcon === "rhel" ||
+    normOs === "alma" ||
+    normOs === "centos" ||
+    normOs === "rhel" ||
+    normLabel.includes("alma") ||
+    normLabel.includes("centos") ||
+    normLabel.includes("rhel") ||
+    normLabel.includes("rocky");
+
+  if (isAlma) {
+    return (
+      <div
+        className={`h-4 w-4 rounded-[4px] bg-[#002f6c] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+        title="AlmaLinux"
+      >
+        {normIcon === "centos" || normLabel.includes("centos") ? (
+          <SiCentos size={10} color="#ffffff" className="pointer-events-none select-none" />
+        ) : (
+          <SiAlmalinux size={10} color="#ffffff" className="pointer-events-none select-none" />
+        )}
+      </div>
+    );
+  }
+
+  // 4. Windows
+  const isWindows =
+    normIcon === "windows" ||
+    normOs === "windows" ||
+    normLabel.includes("win") ||
+    normLabel.includes("rdp") ||
+    normHost.includes("win");
+
+  if (isWindows) {
+    return (
+      <div
+        className={`h-4 w-4 rounded-[4px] bg-[#0078d4] flex items-center justify-center p-0.5 text-white flex-shrink-0 shadow-xs ${className}`}
+        title="Windows"
+      >
+        <img src={windowsIcon} alt="Windows" className="h-2.5 w-2.5 object-contain brightness-125 pointer-events-none select-none" />
+      </div>
+    );
+  }
+
+  // 5. Authentic Ubuntu Vibrant Orange Squircle
+  return (
+    <div
+      className={`h-4 w-4 rounded-[4px] bg-[#e95420] flex items-center justify-center text-white flex-shrink-0 shadow-xs ${className}`}
+      title="Ubuntu Linux"
+    >
+      <SiUbuntu size={10} color="#ffffff" className="pointer-events-none select-none" />
+    </div>
+  );
+}
+
+

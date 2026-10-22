@@ -13,7 +13,7 @@ import pty, { type IPty } from 'node-pty';
 import { v4 as uuidv4 } from 'uuid';
 import multer from 'multer';
 import crypto from 'crypto';
-import type { HostItem, SnippetItem, TunnelItem, SshKeyItem, SettingsData, LocalFileEntry, FolderItem, AccountRegistry } from './types.js';
+import type { HostItem, SnippetItem, TunnelItem, SshKeyItem, SettingsData, LocalFileEntry, FolderItem, AccountRegistry, KnownHostEntry, FingerprintPromptData } from './types.js';
 
 const PORT: number = parseInt(process.env.PORT || '3980', 10);
 const app = express();
@@ -58,8 +58,12 @@ function getWritableDataDir(appName: string, defaultDataPath: string): string {
   return targetDir;
 }
 
-// In compiled TypeScript (dist-electron/server.js), project root is path.join(__dirname, '..')
-const PROJECT_ROOT = __dirname.includes('dist-electron') ? path.join(__dirname, '..') : __dirname;
+// In compiled TypeScript (.vite/build or dist-electron), resolve to workspace root
+const PROJECT_ROOT = __dirname.includes('.vite')
+  ? path.resolve(__dirname, '..', '..')
+  : __dirname.includes('dist-electron')
+  ? path.resolve(__dirname, '..')
+  : process.cwd();
 const DATA_DIR = getWritableDataDir('ErTerm', path.join(PROJECT_ROOT, 'data'));
 
 function readData<T>(file: string, defaultVal: T): T {
@@ -100,6 +104,7 @@ app.use((_req, res, next) => {
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(PROJECT_ROOT, 'public')));
+app.use('/assets', express.static(path.join(PROJECT_ROOT, 'assets')));
 
 // Upload buffer for SFTP
 const uploadDir = path.join(os.tmpdir(), 'erterm-uploads');
@@ -186,10 +191,65 @@ function connectSsh(
   callbacks: {
     onReady: (conn: SSHClient, jumpConn?: SSHClient) => void;
     onError: (err: Error) => void;
+    onFingerprintPrompt?: (prompt: FingerprintPromptData, callback: (accept: boolean) => void) => void;
   }
 ): { cancel: () => void } {
   const hosts = readData<HostItem[]>('hosts.json', []);
   const targetConfig = buildSshConfig(targetHost);
+
+  // Setup hostVerifier for host key fingerprint verification (Termius Parity)
+  targetConfig.hostHash = 'sha256';
+  targetConfig.hostVerifier = (hashedKey: string, verifyCallback: (accept: boolean) => void) => {
+    const knownHosts = readData<KnownHostEntry[]>('known_hosts.json', []);
+    const existing = knownHosts.find(
+      (k) => k.hostname === targetHost.hostname && Number(k.port || 22) === Number(targetHost.port || 22)
+    );
+
+    if (existing && existing.fingerprint === hashedKey) {
+      verifyCallback(true);
+      return;
+    }
+
+    const reason: 'first_time' | 'changed' = existing ? 'changed' : 'first_time';
+
+    if (callbacks.onFingerprintPrompt) {
+      callbacks.onFingerprintPrompt(
+        {
+          hostId: targetHost.id,
+          hostname: targetHost.hostname || '127.0.0.1',
+          port: Number(targetHost.port || 22),
+          keyType: 'ECDSA',
+          fingerprint: hashedKey,
+          reason,
+          oldFingerprint: existing?.fingerprint,
+        },
+        (accept: boolean) => {
+          if (accept) {
+            const now = Date.now();
+            if (existing) {
+              existing.fingerprint = hashedKey;
+              existing.lastSeen = now;
+            } else {
+              knownHosts.push({
+                id: `kh_${now}`,
+                hostname: targetHost.hostname || '127.0.0.1',
+                port: Number(targetHost.port || 22),
+                keyType: 'ECDSA',
+                fingerprint: hashedKey,
+                firstSeen: now,
+                lastSeen: now,
+                trusted: true,
+              });
+            }
+            writeData('known_hosts.json', knownHosts);
+          }
+          verifyCallback(accept);
+        }
+      );
+    } else {
+      verifyCallback(true);
+    }
+  };
 
   let targetConn: SSHClient | null = null;
   let jumpConn: SSHClient | null = null;
@@ -1523,6 +1583,53 @@ app.post('/api/keys/generate', (req: Request, res: Response) => {
 });
 
 // -------------------------------------------------------------
+// Known Hosts & SSH Key Fingerprint Registry APIs (Termius Parity)
+// -------------------------------------------------------------
+app.get('/api/known-hosts', (_req: Request, res: Response) => {
+  const entries = readData<KnownHostEntry[]>('known_hosts.json', []);
+  res.json({ success: true, knownHosts: entries });
+});
+
+app.post('/api/known-hosts', (req: Request, res: Response) => {
+  const body = req.body as Partial<KnownHostEntry>;
+  if (!body.hostname || !body.fingerprint) {
+    return res.status(400).json({ success: false, error: 'Hostname and fingerprint are required' });
+  }
+  const entries = readData<KnownHostEntry[]>('known_hosts.json', []);
+  const port = Number(body.port || 22);
+  const existingIndex = entries.findIndex(
+    (e) => e.hostname === body.hostname && Number(e.port || 22) === port
+  );
+  const now = Date.now();
+  if (existingIndex !== -1) {
+    entries[existingIndex].fingerprint = body.fingerprint;
+    entries[existingIndex].keyType = body.keyType || entries[existingIndex].keyType || 'ECDSA';
+    entries[existingIndex].lastSeen = now;
+  } else {
+    entries.push({
+      id: body.id || `kh_${now}`,
+      hostname: body.hostname,
+      port,
+      keyType: body.keyType || 'ECDSA',
+      fingerprint: body.fingerprint,
+      firstSeen: now,
+      lastSeen: now,
+      trusted: true,
+    });
+  }
+  writeData('known_hosts.json', entries);
+  res.json({ success: true, knownHosts: entries });
+});
+
+app.delete('/api/known-hosts/:id', (req: Request, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  let entries = readData<KnownHostEntry[]>('known_hosts.json', []);
+  entries = entries.filter((e) => e.id !== id);
+  writeData('known_hosts.json', entries);
+  res.json({ success: true, knownHosts: entries });
+});
+
+// -------------------------------------------------------------
 // WebSocket Terminal Streaming
 // -------------------------------------------------------------
 function resolveLocalShell(shellType?: string): string {
@@ -1562,10 +1669,31 @@ interface ActiveTerminalSession {
 
 wss.on('connection', (ws: WebSocket) => {
   let terminalSession: ActiveTerminalSession | null = null;
+  let pendingFingerprintCallback: ((accept: boolean) => void) | null = null;
+  let sshClientInstance: { cancel: () => void } | null = null;
+
+  ws.on('close', () => {
+    if (pendingFingerprintCallback) {
+      try { pendingFingerprintCallback(false); } catch {}
+      pendingFingerprintCallback = null;
+    }
+    if (sshClientInstance) {
+      try { sshClientInstance.cancel(); } catch {}
+      sshClientInstance = null;
+    }
+  });
 
   ws.on('message', (msg: string) => {
     try {
-      const data = JSON.parse(msg) as { type: string; hostId?: string; cols?: number; rows?: number; data?: string };
+      const data = JSON.parse(msg) as {
+        type: string;
+        hostId?: string;
+        cols?: number;
+        rows?: number;
+        data?: string;
+        accept?: boolean;
+        action?: 'replace' | 'add';
+      };
 
       if (data.type === 'init') {
         const { hostId, host: providedHost, cols = 80, rows = 24 } = data as {
@@ -1616,17 +1744,49 @@ wss.on('connection', (ws: WebSocket) => {
             }
           });
 
+          ws.send(JSON.stringify({
+            type: 'status_step',
+            step: 3,
+            message: `Started ${host.label} (${shellExe})`
+          }));
           ws.send(JSON.stringify({ type: 'status', status: 'connected', message: `Started ${host.label} (${shellExe})` }));
 
         } else if (host.type === 'ssh') {
+          ws.send(JSON.stringify({
+            type: 'status_step',
+            step: 1,
+            message: `Resolving host ${host.hostname || '127.0.0.1'} and connecting to port ${host.port || 22}...`
+          }));
           ws.send(JSON.stringify({
             type: 'status',
             status: 'connecting',
             message: `Connecting to ${host.username}@${host.hostname}${host.proxyJumpHostId ? ' (via Bastion)' : ''}...`
           }));
 
-          connectSsh(host, {
+          sshClientInstance = connectSsh(host, {
+            onFingerprintPrompt: (prompt, callback) => {
+              pendingFingerprintCallback = callback;
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                  type: 'status_step',
+                  step: 2,
+                  message: prompt.reason === 'first_time'
+                    ? `Authenticity of host cannot be established. Fingerprint verification required.`
+                    : `Host key fingerprint has changed! Security warning.`
+                }));
+                ws.send(JSON.stringify({
+                  type: 'fingerprint_prompt',
+                  prompt
+                }));
+              }
+            },
             onReady: (conn, jumpConn) => {
+              ws.send(JSON.stringify({
+                type: 'status_step',
+                step: 2,
+                message: `Host key verified. Authenticating as ${host?.username || 'root'}...`
+              }));
+
               conn.shell({ term: 'xterm-256color', cols, rows }, (err: Error | undefined, stream: ClientChannel) => {
                 if (err) {
                   ws.send(JSON.stringify({ type: 'error', message: 'Shell init error: ' + err.message }));
@@ -1650,16 +1810,88 @@ wss.on('connection', (ws: WebSocket) => {
                 });
 
                 ws.send(JSON.stringify({
-                  type: 'status',
-                  status: 'connected',
-                  message: `Connected to ${host.username}@${host.hostname}${host.proxyJumpHostId ? ' (via Bastion)' : ''}`
+                  type: 'status_step',
+                  step: 3,
+                  message: `Interactive terminal session opened.`
                 }));
 
+                ws.send(JSON.stringify({
+                  type: 'status',
+                  status: 'connected',
+                  message: `Connected to ${host?.username}@${host?.hostname}${host?.proxyJumpHostId ? ' (via Bastion)' : ''}`
+                }));
+
+                // Auto-detect remote OS distro and update server icon
+                conn.exec('cat /etc/os-release 2>/dev/null || uname -a', (execErr, execStream) => {
+                  if (!execErr && execStream) {
+                    let osInfo = '';
+                    execStream.on('data', (d: Buffer) => {
+                      osInfo += d.toString('utf-8');
+                    });
+                    execStream.on('close', () => {
+                      const lower = osInfo.toLowerCase();
+                      let detectedOs = host!.osType || 'default';
+                      let detectedIcon = host!.icon || 'default';
+
+                      if (lower.includes('ubuntu')) {
+                        detectedOs = 'ubuntu';
+                        detectedIcon = 'ubuntu';
+                      } else if (lower.includes('debian')) {
+                        detectedOs = 'debian';
+                        detectedIcon = 'debian';
+                      } else if (
+                        lower.includes('alma') ||
+                        lower.includes('centos') ||
+                        lower.includes('rocky') ||
+                        lower.includes('rhel') ||
+                        lower.includes('red hat')
+                      ) {
+                        detectedOs = 'alma';
+                        detectedIcon = 'alma';
+                      } else if (
+                        lower.includes('windows') ||
+                        lower.includes('msys') ||
+                        lower.includes('cygwin')
+                      ) {
+                        detectedOs = 'windows';
+                        detectedIcon = 'windows';
+                      } else if (host!.osType) {
+                        detectedOs = host!.osType;
+                        detectedIcon = host!.icon || host!.osType;
+                      }
+
+                      // Update host in memory & hosts.json
+                      if (host!.osType !== detectedOs || host!.icon !== detectedIcon) {
+                        host!.osType = detectedOs;
+                        host!.icon = detectedIcon;
+                        const allHosts = readData<HostItem[]>('hosts.json', []);
+                        const idx = allHosts.findIndex((h) => h.id === host!.id);
+                        if (idx !== -1) {
+                          allHosts[idx].osType = detectedOs;
+                          allHosts[idx].icon = detectedIcon;
+                          writeData('hosts.json', allHosts);
+                        }
+                      }
+
+                      if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(
+                          JSON.stringify({
+                            type: 'host_detected',
+                            hostId: host!.id,
+                            osType: detectedOs,
+                            icon: detectedIcon,
+                          })
+                        );
+                      }
+                    });
+                  }
+                });
+
                 // Auto-run startup script if defined (Termius Parity)
-                if (host.startupScript) {
+                if (host?.startupScript) {
                   setTimeout(() => {
                     try {
-                      stream.write(host.startupScript + '\n');
+                      stream.write(host!.startupScript + '\n');
                     } catch {}
                   }, 400);
                 }
@@ -1667,13 +1899,49 @@ wss.on('connection', (ws: WebSocket) => {
             },
             onError: (err: Error) => {
               if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'error', message: `SSH Error: ${err.message}` }));
+                let hint = '';
+                const msg = err.message || '';
+                if (
+                  msg.includes('Timed out') ||
+                  msg.includes('ETIMEDOUT') ||
+                  msg.includes('ECONNREFUSED') ||
+                  msg.includes('EHOSTUNREACH')
+                ) {
+                  hint =
+                    `\r\n\x1b[33m[ErTerm Diagnosis] Host ${host.hostname}:${host.port || 22} tidak dapat dijangkau dari jaringan Anda saat ini.\x1b[0m\r\n` +
+                    `\x1b[36m› Tips: Jika ini adalah server private/intranet (seperti IP 10.x.x.x / 192.168.x.x), pastikan koneksi VPN kantor Anda aktif, atau atur ProxyJump (Bastion Host).\x1b[0m\r\n`;
+                } else if (msg.includes('authentication methods failed')) {
+                  hint =
+                    `\r\n\x1b[33m[ErTerm Diagnosis] Server berhasil dijangkau, namun autentikasi ditolak.\x1b[0m\r\n` +
+                    `\x1b[36m› Tips: Periksa kembali username (${host.username}), password, atau SSH Key yang dipilih untuk host ini.\x1b[0m\r\n`;
+                }
+                ws.send(JSON.stringify({ type: 'error', message: err.message, hint }));
                 ws.send(JSON.stringify({ type: 'status', status: 'error', message: err.message }));
               }
             }
           });
         }
 
+      } else if (data.type === 'fingerprint_response') {
+        const accept = Boolean(data.accept);
+        if (pendingFingerprintCallback) {
+          const cb = pendingFingerprintCallback;
+          pendingFingerprintCallback = null;
+          cb(accept);
+        }
+      } else if (data.type === 'cancel_connection') {
+        if (sshClientInstance) {
+          try { sshClientInstance.cancel(); } catch {}
+          sshClientInstance = null;
+        }
+        if (pendingFingerprintCallback) {
+          const cb = pendingFingerprintCallback;
+          pendingFingerprintCallback = null;
+          try { cb(false); } catch {}
+        }
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'status', status: 'disconnected', message: 'Connection aborted by user.' }));
+        }
       } else if (data.type === 'data' && data.data) {
         if (terminalSession) {
           if (terminalSession.type === 'local' && terminalSession.pty) {
