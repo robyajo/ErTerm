@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "kh_1792740743653",
+    "hostname": "roby-vps.duckdns.org",
+    "port": 2223,
+    "keyType": "ECDSA",
+    "fingerprint": "2GMoJojIbsltVT6uFRqT22mFH/9jvg6ZenFNrSQYRKo",
+    "firstSeen": 1792740743653,
+    "lastSeen": 1792740743653,
+    "trusted": true
+  }
+]
