@@ -12,7 +12,15 @@
     "group": "Default",
     "osType": "ubuntu",
     "icon": "ubuntu",
-    "lastConnected": 1792740743771
+    "lastConnected": 1792749737742,
+    "privateKey": "",
+    "tags": [],
+    "backspace": "Default",
+    "agentForwarding": false,
+    "encoding": "UTF-8",
+    "moshEnabled": false,
+    "terminalTheme": "Termius Dark",
+    "createdAt": 1792749737547
   },
   {
     "id": "h1",

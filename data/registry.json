@@ -1,7 +1,7 @@
 {
   "accountId": "default-user",
   "version": 1,
-  "updatedAt": 1792746289389,
+  "updatedAt": 1792749759655,
   "folders": [
     {
       "id": "grp_mpp",
@@ -29,7 +29,15 @@
       "group": "Default",
       "osType": "ubuntu",
       "icon": "ubuntu",
-      "lastConnected": 1792740743771
+      "lastConnected": 1792749737742,
+      "privateKey": "",
+      "tags": [],
+      "backspace": "Default",
+      "agentForwarding": false,
+      "encoding": "UTF-8",
+      "moshEnabled": false,
+      "terminalTheme": "Termius Dark",
+      "createdAt": 1792749737547
     },
     {
       "id": "h1",
@@ -291,7 +299,7 @@
     }
   ],
   "settings": {
-    "theme": "light",
+    "theme": "dark",
     "fontFamily": "Consolas, 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace",
     "fontSize": 14,
     "cursorBlink": true,

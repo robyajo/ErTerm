@@ -1,5 +1,5 @@
 {
-  "theme": "light",
+  "theme": "dark",
   "fontFamily": "Consolas, 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace",
   "fontSize": 14,
   "cursorBlink": true,
