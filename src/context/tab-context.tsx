@@ -13,6 +13,8 @@ export interface TabItem {
 
 export type NavItem = "hosts" | "keychain" | "tunnels" | "snippets" | "known_hosts" | "logs";
 
+export type SplitDirection = "none" | "vertical" | "horizontal";
+
 interface TabContextType {
   tabs: TabItem[];
   activeTabId: string | null;
@@ -41,6 +43,12 @@ interface TabContextType {
   setOnOpenFolderModal: (fn: () => void) => void;
   onOpenSshConfigModal?: () => void;
   setOnOpenSshConfigModal: (fn: () => void) => void;
+  splitMode: SplitDirection;
+  setSplitMode: (mode: SplitDirection) => void;
+  splitTabId: string | null;
+  setSplitTabId: (id: string | null) => void;
+  toggleSplit: (direction?: "vertical" | "horizontal") => void;
+  closeSplit: () => void;
 }
 
 const TabContext = createContext<TabContextType | undefined>(undefined);
@@ -48,6 +56,8 @@ const TabContext = createContext<TabContextType | undefined>(undefined);
 export function TabProvider({ children }: { children: ReactNode }) {
   const [tabs, setTabs] = useState<TabItem[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [splitMode, setSplitMode] = useState<SplitDirection>("none");
+  const [splitTabId, setSplitTabId] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState<NavItem>("hosts");
   const [searchQuery, setSearchQuery] = useState("");
   const [onNewTabTrigger, setOnNewTabTriggerState] = useState<(() => void) | undefined>(undefined);
@@ -139,6 +149,47 @@ export function TabProvider({ children }: { children: ReactNode }) {
       }
       return nextTabs;
     });
+    if (splitTabId === id) {
+      setSplitMode("none");
+      setSplitTabId(null);
+    }
+  };
+
+  const toggleSplit = (direction: "vertical" | "horizontal" = "vertical") => {
+    setSplitMode((prevMode) => {
+      if (prevMode === direction) {
+        setSplitTabId(null);
+        return "none";
+      }
+
+      // If already splitting in different direction, just change direction
+      if (splitTabId) {
+        return direction;
+      }
+
+      // Find an eligible secondary terminal tab
+      const otherTab = tabs.find((t) => t.type === "terminal" && t.id !== activeTabId);
+      if (otherTab) {
+        setSplitTabId(otherTab.id);
+      } else if (onConnectHostState) {
+        // If only 1 terminal tab exists, automatically spawn a local terminal for the split pane
+        const newLocalHost: HostItem = {
+          id: "split_" + Date.now(),
+          label: "Local Terminal (Split)",
+          type: "local",
+          shellType: "bash",
+          osType: "linux",
+        };
+        onConnectHostState(newLocalHost);
+      }
+
+      return direction;
+    });
+  };
+
+  const closeSplit = () => {
+    setSplitMode("none");
+    setSplitTabId(null);
   };
 
   const setOnNewTabTrigger = (fn: () => void) => {
@@ -191,6 +242,12 @@ export function TabProvider({ children }: { children: ReactNode }) {
         setOnOpenFolderModal,
         onOpenSshConfigModal: onOpenSshConfigModalState,
         setOnOpenSshConfigModal,
+        splitMode,
+        setSplitMode,
+        splitTabId,
+        setSplitTabId,
+        toggleSplit,
+        closeSplit,
       }}
     >
       {children}

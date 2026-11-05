@@ -88,6 +88,9 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
     setSettingsModalOpen,
     onOpenFolderModal,
     onOpenSshConfigModal,
+    splitMode,
+    toggleSplit,
+    closeSplit,
   } = useTabContext();
 
   useEffect(() => {
@@ -135,7 +138,7 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
     }
   };
 
-  // Close menus on click outside or Escape
+  // Close menus on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -157,12 +160,56 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
         setActiveSubmenu(null);
       }
     };
+
+    if (newTabMenuOpen || burgerMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    if (newTabMenuOpen) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [newTabMenuOpen, burgerMenuOpen]);
+
+  // Global Keyboard Shortcuts (Terminal split panes, new tab, navigation, settings)
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setNewTabMenuOpen(false);
         setBurgerMenuOpen(false);
         setActiveSubmenu(null);
       }
+
+      // Split Pane Shortcuts
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey) {
+        const key = event.key.toLowerCase();
+        if (key === "d") {
+          event.preventDefault();
+          toggleSplit("vertical");
+          setBurgerMenuOpen(false);
+          setActiveSubmenu(null);
+          return;
+        }
+        if (key === "e") {
+          event.preventDefault();
+          toggleSplit("horizontal");
+          setBurgerMenuOpen(false);
+          setActiveSubmenu(null);
+          return;
+        }
+        if (key === "w") {
+          event.preventDefault();
+          closeSplit();
+          setBurgerMenuOpen(false);
+          setActiveSubmenu(null);
+          return;
+        }
+      }
+
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "t") {
         event.preventDefault();
         handleToggleMenu();
@@ -188,21 +235,21 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
       }
     };
 
-    if (newTabMenuOpen || burgerMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    if (newTabMenuOpen) {
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 50);
-    }
-    document.addEventListener("keydown", handleKeyDown);
-
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [newTabMenuOpen, burgerMenuOpen]);
+  }, [
+    toggleSplit,
+    closeSplit,
+    setActiveTabId,
+    setActiveNav,
+    setSettingsModalOpen,
+    // Menu handlers close over this state; without it the second Ctrl+T reads
+    // a stale value and cannot close the menu it just opened.
+    newTabMenuOpen,
+    burgerMenuOpen,
+  ]);
 
   const handleOpenSFTP = () => {
     setActiveNav("hosts");
@@ -570,6 +617,45 @@ export default function DragWindowRegion({ title }: DragWindowRegionProps) {
                     >
                       <span>Show All Hosts</span>
                     </button>
+                    <div className="h-px bg-white/[0.08] my-1 mx-1.5" />
+                    <button
+                      onClick={() => {
+                        toggleSplit("vertical");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Split Vertically</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+Shift+D</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        toggleSplit("horizontal");
+                        setBurgerMenuOpen(false);
+                        setActiveSubmenu(null);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-slate-200 hover:text-white hover:bg-[#282d3d] transition-colors cursor-pointer"
+                      type="button"
+                    >
+                      <span>Split Horizontally</span>
+                      <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+Shift+E</span>
+                    </button>
+                    {splitMode !== "none" && (
+                      <button
+                        onClick={() => {
+                          closeSplit();
+                          setBurgerMenuOpen(false);
+                          setActiveSubmenu(null);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left text-rose-300 hover:text-rose-200 hover:bg-rose-950/30 transition-colors cursor-pointer"
+                        type="button"
+                      >
+                        <span>Close Split</span>
+                        <span className="text-xs text-slate-400 font-mono tracking-tight">Ctrl+Shift+W</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

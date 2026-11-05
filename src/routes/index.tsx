@@ -199,18 +199,8 @@ export function TerminalApp() {
     setOnNewTabTrigger(handleShowAllHosts);
     window.addEventListener("erterm:show-all-hosts", handleShowAllHosts);
 
-    // Global shortcut Ctrl+T / Cmd+T to open All Hosts
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "t") {
-        e.preventDefault();
-        handleShowAllHosts();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-
     return () => {
       window.removeEventListener("erterm:show-all-hosts", handleShowAllHosts);
-      window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
@@ -405,6 +395,22 @@ export function TerminalApp() {
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     term.loadAddon(new WebLinksAddon());
+
+    // Prevent xterm from intercepting application shortcuts
+    term.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        const key = event.key.toLowerCase();
+        // Split pane shortcuts: Ctrl+Shift+D (Vertical), Ctrl+Shift+E (Horizontal), Ctrl+Shift+W (Close)
+        if (event.shiftKey && (key === "d" || key === "e" || key === "w")) {
+          return false;
+        }
+        // App navigation and modal shortcuts
+        if (key === "t" || key === "," || key === "1" || key === "2") {
+          return false;
+        }
+      }
+      return true;
+    });
 
     term.open(container);
     fitAddon.fit();
@@ -665,21 +671,11 @@ export function TerminalApp() {
     setOnOpenSshConfigModal(() => {
       setSshConfigModalOpen(true);
     });
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === ",") {
-        e.preventDefault();
-        setSettingsModalOpen(true);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     setOnConnectHost,
     setOnOpenNewHostModal,
     setOnOpenFolderModal,
     setOnOpenSshConfigModal,
-    setSettingsModalOpen,
   ]);
 
   const openFolderModal = (folder?: Partial<FolderItem>) => {
